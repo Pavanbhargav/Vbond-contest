@@ -1,26 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #f2f5f9;
   --foreground: #171717;
+  /* Inverted Colors: Primary1 is now Orange, Primary2 is now Blue */
+  --primary1: #E67817;
+  --primary2: #01458E;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark mode when using 'dark' class */
+:root.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
+/* Also support system preference if class is not present (optional, but good for SSR) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
 }
 
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary1: var(--primary1);
+  --color-primary2: var(--primary2);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
