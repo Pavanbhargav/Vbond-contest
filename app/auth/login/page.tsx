@@ -1,5 +1,6 @@
 import LoginForm from "./login-form";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Login | Vbond Contest",
@@ -8,32 +9,34 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen bg-white">
-      {/* Left side - Branding/Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#01458E] items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#01458E] to-[#002f61] z-0" />
-        <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(#E67817_1px,transparent_1px)] [background-size:20px_20px]" />
-        
-        <div className="relative z-10 text-white text-center px-8">
-            <h1 className="text-5xl font-bold mb-4 tracking-tight">Welcome Back!</h1>
-            <p className="text-xl text-blue-100 max-w-md mx-auto">
-              Join the contest and showcase your talent to the world.
-            </p>
-        </div>
-        
-        {/* Abstract shapes for visual interest */}
-        <div className="absolute -bottom-24 -left-20 w-80 h-80 bg-[#E67817] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute -top-24 -right-20 w-80 h-80 bg-[#E67817] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div className="min-h-screen relative flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-black py-12 px-4 sm:px-6 lg:px-8">
+      {/* Background Elements */}
+      <div className="absolute inset-0 z-0">
+         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary1/20 rounded-full blur-[100px] animate-pulse"></div>
+         <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-primary2/10 rounded-full blur-[120px] animate-pulse animation-delay-2000"></div>
+         <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
       </div>
 
-      {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50">
-        <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-           <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-3xl font-bold text-gray-900">Sign In</h2>
-              <p className="text-gray-500 mt-2">Please enter your details to continue.</p>
-           </div>
+      <div className="w-full max-w-md relative z-10">
+        <div className="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl p-8 transform transition-all hover:scale-[1.01]">
+          <div className="text-center mb-8">
+            <Link href="/" className="inline-block text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary1 to-primary2 tracking-tighter mb-2">
+              FreeLance
+            </Link>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Welcome Back</h2>
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">Please sign in to your account</p>
+          </div>
+          
           <LoginForm />
+        </div>
+        
+        <div className="text-center mt-6">
+           <p className="text-zinc-500 dark:text-zinc-400 text-sm">
+             Don't have an account?{" "}
+             <Link href="/auth/signup" className="text-primary1 font-semibold hover:text-primary2 transition-colors">
+               Sign up now
+             </Link>
+           </p>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import {
 } from "react";
 import { account } from "../appwrite/appwrite";
 import { Models } from "appwrite";
+import { useRouter } from "next/navigation";
 
 
 export interface AuthContextType {
@@ -32,6 +33,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const router = useRouter();
 
   useEffect(() => {
     checkUserStatus();
@@ -58,6 +60,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     await account.deleteSession("current");
     setUser(null);
+    router.refresh()
   };
 
   const isAdmin = user?.labels?.includes("admin");
