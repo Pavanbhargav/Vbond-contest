@@ -1,50 +1,66 @@
 "use client";
-
-import { IoAdd, IoTimeOutline, IoCheckmarkDoneOutline, IoAlertCircleOutline } from "react-icons/io5";
+import { useAuth } from "../../context/AuthContext";
+import { useState } from "react";
+import { IoAdd, IoTimeOutline, IoCheckmarkDoneOutline, IoAlertCircleOutline, IoCloudUploadOutline } from "react-icons/io5";
 
 export default function Submissions() {
-    // Mock data
+    const { user } = useAuth();
+    
+    // Static Mock Data
     const submissions = [
-        { id: 1, title: "My awesome project", status: "Approved", date: "2023-10-20" },
-        { id: 2, title: "Draft Submission", status: "Pending", date: "2023-10-22" },
+        { $id: "SUB-001", title: "Eco-Friendly Housing", description: "A sustainable housing project design.", status: "pending", $createdAt: "2023-11-15T10:00:00.000Z" },
+        { $id: "SUB-002", title: "Smart City Traffic AI", description: "AI algorithm to manage traffic flow.", status: "approved", $createdAt: "2023-11-14T14:30:00.000Z" },
+        { $id: "SUB-003", title: "Blockchain Voting System", description: "Secure voting implementation.", status: "rejected", $createdAt: "2023-11-12T09:15:00.000Z" },
     ];
 
+    if (!user) return <div className="p-8"><div className="h-48 bg-zinc-100 dark:bg-zinc-800 rounded-xl animate-pulse"></div></div>;
+
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-[var(--primary1)]">My Submissions</h1>
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-[var(--primary2)] text-white rounded-lg hover:opacity-90 transition shadow-md font-medium">
-                    <IoAdd className="text-xl" /> New Submission
-                </button>
+                <div>
+                    <h1 className="text-3xl font-bold text-[var(--foreground)]">My Submissions</h1>
+                    <p className="text-zinc-500 dark:text-zinc-400 mt-1">Status of your submitted work</p>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {/* Empty State or Mapped Items */}
                  {submissions.map((sub) => (
-                    <div key={sub.id} className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                    <div key={sub.$id} className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800 hover:shadow-md transition-shadow group">
                         <div className="flex justify-between items-start mb-4">
                             <div className={`p-2 rounded-lg ${
-                                sub.status === 'Approved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 
-                                sub.status === 'Pending' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                sub.status === 'approved' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' : 
+                                sub.status === 'pending' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
                             }`}>
-                                {sub.status === 'Approved' ? <IoCheckmarkDoneOutline size={24}/> : 
-                                 sub.status === 'Pending' ? <IoTimeOutline size={24}/> : <IoAlertCircleOutline size={24}/>}
+                                {sub.status === 'approved' ? <IoCheckmarkDoneOutline size={24}/> : 
+                                 sub.status === 'pending' ? <IoTimeOutline size={24}/> : <IoAlertCircleOutline size={24}/>}
                             </div>
-                             <span className="text-xs text-gray-400 dark:text-gray-500">{sub.date}</span>
+                             <span className="text-xs text-zinc-400 dark:text-zinc-500 font-mono">{new Date(sub.$createdAt).toLocaleDateString()}</span>
                         </div>
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">{sub.title}</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Click to view details and feedback.</p>
-                        <div className="w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
-                            <div className={`h-full ${sub.status === 'Approved' ? 'bg-green-500 w-full' : 'bg-yellow-400 w-1/3'}`}></div>
+                        <h3 className="text-xl font-bold text-[var(--foreground)] mb-2 line-clamp-1">{sub.title || "Untitled Submission"}</h3>
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4 line-clamp-2">
+                            {sub.description || "No description provided."}
+                        </p>
+                        
+                        <div className="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                            <span className={`text-xs font-bold uppercase tracking-wider ${
+                                sub.status === 'approved' ? 'text-green-600' : 
+                                sub.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                                {sub.status}
+                            </span>
                         </div>
                     </div>
                  ))}
                  
-                 {/* Add New Card Placeholder */}
-                 <button className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl p-6 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 hover:border-[var(--primary1)] hover:text-[var(--primary1)] transition-colors min-h-[200px]">
-                    <IoAdd size={48} className="mb-2 opacity-50" />
-                    <span className="font-medium">Create New Submission</span>
-                 </button>
+                 {/* Empty State Link */}
+                 {submissions.length === 0 && (
+                     <div className="col-span-full py-12 flex flex-col items-center justify-center text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl">
+                        <IoCloudUploadOutline size={48} className="mb-4 opacity-50" />
+                        <p className="text-lg font-medium">No submissions yet</p>
+                        <p className="text-sm">Participate in a contest to see your work here.</p>
+                     </div>
+                 )}
             </div>
         </div>
     );
