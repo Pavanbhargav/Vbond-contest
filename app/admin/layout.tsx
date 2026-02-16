@@ -3,7 +3,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
-import { IoGrid, IoDocumentText, IoSwapHorizontal, IoMenu } from "react-icons/io5";
+import { IoGrid, IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase } from "react-icons/io5";
 import { useState } from "react";
 
 export default function AdminLayout({
@@ -22,12 +22,14 @@ export default function AdminLayout({
 
   const adminLinks = [
     { label: "Dashboard", href: "/admin/dashboard", icon: IoGrid },
-    { label: "Review", href: "/admin/review", icon: IoDocumentText },
+    {label:'Tasks' ,href:'/admin/tasks',icon:IoBriefcase},
+    // { label: "Review", href: "/admin/review", icon: IoDocumentText },
     {
       label: "Transactions",
       href: "/admin/transactions",
       icon: IoSwapHorizontal,
     },
+    
   ];
 
   return (

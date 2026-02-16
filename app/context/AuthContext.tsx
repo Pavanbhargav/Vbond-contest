@@ -33,6 +33,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -43,9 +44,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       const accountDetails = await account.get();
       setUser(accountDetails);
+      
+      // Check for Admin status in Database (Dynamic Role)
+      try {
+        const { DB_ID, COL_USERS, databases } = await import("../appwrite/appwrite");
+        const { Query } = await import("appwrite");
+        
+        const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
+            Query.equal("userId", accountDetails.$id)
+        ]);
+
+        if (userDocs.total > 0 && userDocs.documents[0].isAdmin) {
+            setIsAdmin(true);
+        } else {
+            // Fallback to static label check
+            setIsAdmin(accountDetails.labels?.includes("admin") || false);
+        }
+      } catch (dbError) {
+        console.error("Error fetching user role:", dbError);
+        setIsAdmin(accountDetails.labels?.includes("admin") || false);
+      }
+
       return accountDetails;
     } catch {
       setUser(null);
+      setIsAdmin(false);
       return null;
     } finally {
       setLoading(false);
@@ -60,10 +83,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     await account.deleteSession("current");
     setUser(null);
+    setIsAdmin(false);
     router.refresh()
   };
 
-  const isAdmin = user?.labels?.includes("admin");
+
 
   return (
     <AuthContext.Provider value={{ user, login, logout, isAdmin, loading }}>

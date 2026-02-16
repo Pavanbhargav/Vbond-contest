@@ -3,7 +3,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
-import { IoGrid, IoCloudUpload, IoWallet, IoMenu } from "react-icons/io5";
+import { IoGrid, IoCloudUpload, IoWallet, IoMenu, IoBriefcase } from "react-icons/io5";
 import { useState } from "react";
 
 export default function UserLayout({
@@ -22,6 +22,7 @@ export default function UserLayout({
 
   const userLinks = [
     { label: "Dashboard", href: "/user/dashboard", icon: IoGrid },
+    {label:'Tasks',href:"/user/tasks",icon:IoBriefcase},
     { label: "Submissions", href: "/user/submissions", icon: IoCloudUpload },
     { label: "Wallet", href: "/user/wallet", icon: IoWallet },
   ];
