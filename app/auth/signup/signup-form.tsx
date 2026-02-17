@@ -191,10 +191,10 @@ export default function SignUpForm() {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         type="submit"
-        className={`w-full py-4 px-4 rounded-xl text-white font-bold text-lg shadow-lg shadow-primary1/20 transition-all duration-300 transform ${
+        className={`w-full py-2 px-4 rounded-xl text-white font-bold text-lg shadow-lg shadow-primary1/20 transition-all duration-300 transform ${
           loading
             ? "bg-zinc-400 cursor-not-allowed"
-            : "bg-primary1 hover:bg-primary2 hover:shadow-primary1/40"
+            : "bg-primary1"
         }`}
         disabled={loading}
       >
