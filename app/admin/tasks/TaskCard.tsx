@@ -11,6 +11,7 @@ export interface Task {
   task_type: 'Video' | 'Photo' | 'UI' | 'GraphicDesign' | 'VectorDesign';
   price: number;
   deadline?: string;
+  fileId?: string;
 }
 
 interface TaskCardProps {
@@ -54,7 +55,7 @@ export default function TaskCard({ task, onEdit, onClosePayout }: TaskCardProps)
         </div>
         <div className="flex items-center gap-1 text-zinc-900 dark:text-white font-bold bg-zinc-50 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-100 dark:border-zinc-700">
            <IoCashOutline className="text-[var(--primary1)]" size={18} />
-           <span>${task.price}</span>
+           <span>₹{task.price}</span>
         </div>
       </div>
 

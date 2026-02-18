@@ -3,22 +3,43 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
-import { IoGrid, IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase } from "react-icons/io5";
-import { useState } from "react";
+import { IoGrid, IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase, IoPerson } from "react-icons/io5";
+import { useState, useEffect } from "react";
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { logout } = useAuth();
+  const { user, logout, isAdmin, loading } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.replace("/auth/login");
+      } else if (!isAdmin) {
+        router.replace("/user/dashboard");
+      }
+    }
+  }, [user, isAdmin, loading, router]);
 
   const handleLogout = async () => {
     await logout();
     router.replace("/auth/login");
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary1 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-zinc-500 dark:text-zinc-400 font-medium">Loading Admin Panel...</p>
+        </div>
+      </div>
+    );
+  }
 
   const adminLinks = [
     { label: "Dashboard", href: "/admin/dashboard", icon: IoGrid },
@@ -29,7 +50,7 @@ export default function AdminLayout({
       href: "/admin/transactions",
       icon: IoSwapHorizontal,
     },
-    
+    { label: "Profile", href: "/admin/profile", icon: IoPerson },
   ];
 
   return (
