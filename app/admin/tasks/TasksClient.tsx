@@ -7,6 +7,9 @@ import {
   COL_TASKS,
   COL_SUBMISSIONS,
   COL_USERS,
+  COL_TRANSACTIONS,
+  storage,
+  BUCKET_ID,
 } from "../../appwrite/appwrite";
 import { ID, Query } from "appwrite";
 import { useAuth } from "../../context/AuthContext";
@@ -45,6 +48,7 @@ export default function TasksClient() {
         price: doc.price,
         task_type: doc.task_type,
         deadline: doc.deadline || undefined, // Handle possible null from Appwrite
+        fileId: doc.fileId,
       })) as Task[];
 
       setTasks(mappedTasks);
@@ -63,21 +67,47 @@ export default function TasksClient() {
 
   const handleSaveTask = async (
     taskData: Omit<Task, "$id" | "$createdAt" | "$updatedAt">,
+    file?: File | null
   ) => {
     setIsSaving(true);
     try {
+      let fileId = selectedTask?.fileId;
+
+      if (file) {
+        // 1. Upload new file
+        const uploadedFile = await storage.createFile(
+            BUCKET_ID,
+            ID.unique(),
+            file
+        );
+        fileId = uploadedFile.$id;
+
+        // 2. Delete old file if exists (cleanup)
+        if (selectedTask?.fileId) {
+            try {
+                await storage.deleteFile(BUCKET_ID, selectedTask.fileId);
+            } catch (e) {
+                console.warn("Failed to delete old file:", e);
+            }
+        }
+      }
+
       if (selectedTask) {
         // Update
         await databases.updateDocument(
           DB_ID,
           COL_TASKS,
           selectedTask.$id,
-          taskData,
+          {
+            ...taskData,
+            fileId: fileId,
+          }
         );
       } else {
         // Create
         await databases.createDocument(DB_ID, COL_TASKS, ID.unique(), {
           ...taskData,
+          fileId: fileId, // Add fileId to new task
           $createdAt: new Date().toISOString(),
         });
       }
@@ -157,6 +187,11 @@ export default function TasksClient() {
             await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
               balance: userDoc.balance + payoutPerUser,
             });
+            await databases.createDocument(DB_ID,COL_TRANSACTIONS,ID.unique(),{
+              userId:sub.userId,
+              transaction_amount: payoutPerUser,
+              transaction_created:new Date().toISOString(),
+            })
             successCount++;
           } else {
             console.warn(`User document not found for userId: ${sub.userId}`);

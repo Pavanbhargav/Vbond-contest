@@ -1,12 +1,12 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { IoClose, IoSave, IoAlertCircle, IoCashOutline, IoLayersOutline, IoOptionsOutline } from "react-icons/io5";
+import { IoClose, IoSave, IoAlertCircle, IoCashOutline, IoLayersOutline, IoOptionsOutline, IoCloudUploadOutline, IoDocumentAttachOutline } from "react-icons/io5";
 import { Task } from "./TaskCard";
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (taskData: Omit<Task, '$id' | '$createdAt' | '$updatedAt'>) => Promise<void>;
+  onSave: (taskData: Omit<Task, '$id' | '$createdAt' | '$updatedAt'>, file?: File | null) => Promise<void>;
   initialData?: Task | null;
   isLoading: boolean;
 }
@@ -21,6 +21,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
     price: 0,
     deadline: "",
   });
+  const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         price: initialData.price,
         deadline: initialData.deadline ? new Date(initialData.deadline).toISOString().split('T')[0] : "",
       });
+      setFile(null); // Reset file on edit open
     } else {
       setFormData({
         title: "",
@@ -44,9 +46,22 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         price: 0,
         deadline: "",
       });
+      setFile(null);
     }
     setError("");
   }, [initialData, isOpen]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      if (selectedFile.type !== "application/zip" && !selectedFile.name.endsWith(".zip")) {
+        setError("Only .zip files are allowed for assets.");
+        return;
+      }
+      setFile(selectedFile);
+      setError("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,10 +72,10 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
     try {
       await onSave({
         ...formData,
-        price: Math.round(formData.price), // Ensure integer as requested
-        level: formData.level || undefined, // Send undefined if empty (though we interpret "Easy" as default)
-        deadline: formData.deadline || undefined, // Send undefined if empty
-      } as any);
+        price: Math.round(formData.price),
+        level: formData.level || undefined,
+        deadline: formData.deadline || undefined,
+      } as any, file);
     } catch (err) {
       console.error(err);
       setError("Failed to save task. Please try again.");
@@ -137,6 +152,43 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
                         placeholder="Add detailed instructions, requirements, and context..."
                         />
                     </div>
+
+                     <div>
+                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                            Assets (ZIP only)
+                        </label>
+                        <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative">
+                            <input
+                                type="file"
+                                accept=".zip,application/zip"
+                                onChange={handleFileChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            />
+                            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
+                                {file ? <IoDocumentAttachOutline size={24} /> : <IoCloudUploadOutline size={24} />}
+                            </div>
+                            {file ? (
+                                <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4">
+                                    {file.name}
+                                </p>
+                            ) : (
+                                <>
+                                    <p className="font-medium text-zinc-900 dark:text-white">
+                                        Click or Drag ZIP file
+                                    </p>
+                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                        Upload assets for the user (Max 50MB)
+                                    </p>
+                                </>
+                            )}
+                        </div>
+                        {initialData?.fileId && !file && (
+                             <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
+                                <IoDocumentAttachOutline />
+                                This task already has assets uploaded. Uploading a new file will replace them.
+                             </p>
+                        )}
+                    </div>
                  </div>
 
                  {/* Right Column: Meta Data */}
@@ -199,18 +251,18 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
 
                         <div>
                             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                                Price ($) <span className="text-red-500">*</span>
+                                Price (₹) <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <IoCashOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
                                 <input
                                     type="number"
-                                    min="0"
+                                    min="1"
                                     step="1" 
                                     value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
+                                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 1})}
                                     className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all"
-                                    placeholder="0"
+                                    placeholder="1"
                                 />
                             </div>
                         </div>

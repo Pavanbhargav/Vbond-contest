@@ -10,6 +10,7 @@ export interface Task {
   task_type: 'Video' | 'Photo' | 'UI' | 'GraphicDesign' | 'VectorDesign';
   price: number;
   deadline?: string;
+  fileId?: string;
 }
 
 interface UserTaskCardProps {
@@ -54,7 +55,7 @@ export default function UserTaskCard({ task, onClick }: UserTaskCardProps) {
         </div>
         <div className="flex items-center gap-2">
            <span className="text-lg font-bold text-[var(--primary1)] flex items-center gap-1">
-             <IoCashOutline /> ${task.price}
+             <IoCashOutline /> ₹{task.price}
            </span>
         </div>
       </div>

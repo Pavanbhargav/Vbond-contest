@@ -42,8 +42,8 @@ export default function Navbar() {
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary1 to-primary2 tracking-tighter">
-                FreeLance
+              <Link href="/" className="flex items-center">
+                <img src="/VBONDTALENT.png" alt="VBond Talent" className="h-10 w-auto" />
               </Link>
             </div>
             

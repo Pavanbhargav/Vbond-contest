@@ -15,8 +15,8 @@ export default function Footer() {
           
           {/* Brand Column */}
           <div className="space-y-6">
-            <Link href="/" className="inline-block text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary1 to-primary2 tracking-tighter">
-              FreeLance
+            <Link href="/" className="inline-block">
+               <img src="/VBONDTALENT.png" alt="VBond Talent" className="h-10 w-auto" />
             </Link>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed">
               Connecting talented freelancers with ambitious businesses. Build your dream project or find your next big opportunity with us.

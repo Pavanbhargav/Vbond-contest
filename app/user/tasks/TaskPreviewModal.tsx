@@ -4,8 +4,10 @@ import {
   IoCalendar,
   IoCheckmarkCircle,
   IoLayersOutline,
+  IoCloudDownloadOutline,
 } from "react-icons/io5";
 import { Task } from "./UserTaskCard";
+import { storage, BUCKET_ID } from "../../appwrite/appwrite";
 
 interface TaskPreviewModalProps {
   isOpen: boolean;
@@ -90,7 +92,7 @@ export default function TaskPreviewModal({
             </div>
 
             {/* Right Sidebar: Meta Data & Action */}
-            <div className="w-full md:w-96 bg-zinc-50 dark:bg-zinc-950/50 p-8 border-l border-zinc-200 dark:border-zinc-800 flex flex-col gap-6 shrink-0">
+            <div className="w-full md:w-96 bg-zinc-50 dark:bg-zinc-950/50 p-8 border-l border-zinc-200 dark:border-zinc-800 flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar">
               <div className="hidden md:flex justify-end mb-4">
                 <button
                   onClick={onClose}
@@ -105,7 +107,7 @@ export default function TaskPreviewModal({
                   Reward
                 </div>
                 <div className="text-4xl font-bold text-[var(--primary1)] flex items-center gap-1">
-                  $ {task.price}
+                  ₹ {task.price}
                 </div>
               </div>
 
@@ -162,7 +164,19 @@ export default function TaskPreviewModal({
                 )}
               </div>
 
-              <div className="mt-auto pt-6">
+              <div className="mt-auto pt-6 space-y-3">
+                 {task.fileId && (
+                    <a
+                        href={storage.getFileDownload(BUCKET_ID, task.fileId).toString()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-3 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 font-bold hover:border-[var(--primary1)] hover:text-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all flex items-center justify-center gap-2"
+                    >
+                        <IoCloudDownloadOutline size={20} />
+                        Download Assets
+                    </a>
+                 )}
+
                 <button 
                   onClick={() => onOpenSubmission(task)}
                   disabled={isClosed}

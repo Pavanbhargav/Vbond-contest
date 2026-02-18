@@ -62,13 +62,16 @@ export default function Sidebar({ links, logout, isOpen, setIsOpen }: SidebarPro
         onMouseLeave={() => !isMobile && setIsHovered(false)}
       >
         <div className="flex items-center justify-center h-20 border-b border-zinc-100 dark:border-zinc-800 relative">
-          <div className="flex items-center gap-3">
-             <div className="bg-gradient-to-tr from-[var(--primary1)] to-[var(--primary2)] text-white p-2 rounded-lg shadow-lg">
-                <span className="font-bold text-xl">V</span>
-             </div>
-             <span className={`text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--primary1)] to-[var(--primary2)] transition-opacity duration-300 ${isHovered || isMobile ? 'opacity-100 w-auto': 'opacity-0 w-0 overflow-hidden'}`}>
-               VBond
-             </span>
+          <div className={`flex items-center justify-center transition-all duration-300 ${isHovered || isMobile ? 'w-full px-4' : 'w-full px-2'}`}>
+             <Link href="/">
+                <img 
+                  src="/VBONDTALENT.png" 
+                  alt="VBond" 
+                  className={`transition-all duration-300 object-contain ${
+                    isHovered || isMobile ? 'h-12 w-auto' : 'h-8 w-auto'
+                  }`}
+                />
+             </Link>
           </div>
           {isMobile && (
             <button 

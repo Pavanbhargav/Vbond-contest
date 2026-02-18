@@ -1,7 +1,7 @@
 "use client"
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { IoClose, IoCloudUploadOutline, IoCheckmarkCircle, IoAlertCircle, IoTimeOutline } from "react-icons/io5";
+import { IoClose, IoCloudUploadOutline, IoCheckmarkCircle, IoAlertCircle, IoTimeOutline, IoTrashOutline } from "react-icons/io5";
 import { Task } from "./UserTaskCard";
 import { databases, storage, DB_ID, COL_SUBMISSIONS, BUCKET_ID } from "../../appwrite/appwrite";
 import { ID, Query } from "appwrite";
@@ -20,6 +20,7 @@ export default function SubmissionModal({ isOpen, onClose, task, userId }: Submi
   const [success, setSuccess] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [existingSubmission, setExistingSubmission] = useState<any>(null);
 
   useEffect(() => {
     const checkSubmission = async () => {
@@ -37,8 +38,10 @@ export default function SubmissionModal({ isOpen, onClose, task, userId }: Submi
             );
             if (response.documents.length > 0) {
                 setHasSubmitted(true);
+                setExistingSubmission(response.documents[0]);
             } else {
                 setHasSubmitted(false);
+                setExistingSubmission(null);
             }
         } catch (err) {
             console.error("Error checking submission status:", err);
@@ -49,6 +52,31 @@ export default function SubmissionModal({ isOpen, onClose, task, userId }: Submi
 
     checkSubmission();
   }, [isOpen, task, userId]);
+
+  const handleDelete = async () => {
+    if (!existingSubmission || !confirm("Are you sure you want to delete this submission? This action cannot be undone.")) return;
+    
+    setIsUploading(true);
+    try {
+        // 1. Delete file from storage
+        if (existingSubmission.fileId) {
+             await storage.deleteFile(BUCKET_ID, existingSubmission.fileId);
+        }
+
+        // 2. Delete document from database
+        await databases.deleteDocument(DB_ID, COL_SUBMISSIONS, existingSubmission.$id);
+
+        setHasSubmitted(false);
+        setExistingSubmission(null);
+        setFile(null);
+        setSuccess(false);
+    } catch (err: any) {
+        console.error("Error deleting submission:", err);
+        setError("Failed to delete submission. Please try again.");
+    } finally {
+        setIsUploading(false);
+    }
+  };
 
 
   if (!task || !isOpen) return null;
@@ -150,14 +178,29 @@ export default function SubmissionModal({ isOpen, onClose, task, userId }: Submi
                     </div>
                     <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">Already Submitted</h3>
                     <p className="text-zinc-600 dark:text-zinc-400 max-w-xs mx-auto mb-6">
-                        You have already submitted your work for this task. You can only submit once.
+                        You have already submitted your work for this task.
                     </p>
-                    <button
-                        onClick={onClose}
-                        className="px-6 py-2 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
-                    >
-                        Close
-                    </button>
+                    <div className="flex flex-col gap-3 w-full max-w-xs">
+                        <button
+                            onClick={onClose}
+                            className="w-full px-6 py-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                        >
+                            Close
+                        </button>
+                        <button
+                             onClick={handleDelete}
+                             disabled={isUploading}
+                             className="w-full px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-2"
+                        >
+                            {isUploading ? (
+                                <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <IoTrashOutline /> Delete & Re-submit
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             ) : success ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">

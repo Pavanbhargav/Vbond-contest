@@ -42,6 +42,7 @@ export default function UserTasksClient() {
         price: doc.price,
         task_type: doc.task_type,
         deadline: doc.deadline || undefined,
+        fileId: doc.fileId,
       })) as Task[];
 
       setTasks(mappedTasks);
