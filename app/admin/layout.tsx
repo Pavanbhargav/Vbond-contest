@@ -44,7 +44,7 @@ export default function AdminLayout({
   const adminLinks = [
     { label: "Dashboard", href: "/admin/dashboard", icon: IoGrid },
     {label:'Tasks' ,href:'/admin/tasks',icon:IoBriefcase},
-    // { label: "Review", href: "/admin/review", icon: IoDocumentText },
+    { label: "Submissions", href: "/admin/submissions", icon: IoDocumentText },
     {
       label: "Transactions",
       href: "/admin/transactions",
