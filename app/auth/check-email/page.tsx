@@ -15,7 +15,7 @@ export default function CheckEmailPage() {
     setResending(true);
     setResendStatus("");
     try {
-      const redirect_url = "http://192.168.1.6:3000/verify";
+      const redirect_url = `${window.location.origin}/verify`;
       await account.createVerification(redirect_url);
       setResendStatus("Verification email resent!");
     } catch (error: any) {

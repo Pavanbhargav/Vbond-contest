@@ -16,6 +16,7 @@ import { ID, Query } from "appwrite";
 import { useAuth } from "../../context/AuthContext";
 import TaskCard, { Task } from "./TaskCard";
 import TaskModal from "./TaskModal";
+import ConfirmationModal from "./ConfirmationModal";
 import { IoAdd, IoSearch } from "react-icons/io5";
 import { motion } from "framer-motion";
 
@@ -27,6 +28,21 @@ export default function TasksClient() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: React.ReactNode;
+    onConfirm: () => void;
+    isDanger?: boolean;
+    confirmText?: string;
+    type?: "confirm" | "alert";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const fetchTasks = async () => {
     try {
@@ -179,15 +195,13 @@ export default function TasksClient() {
       task.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleClosePayout = async (task: Task) => {
-    if (
-      !confirm(
-        `Are you sure you want to close "${task.title}" and process payouts? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
-
+  /* 
+   * executePayout: Handles the actual DB updates after confirmation.
+   * No internal modals for confirmation, just execution and result feedback.
+   */
+  const executePayout = async (task: Task) => {
+    setConfirmModal((prev) => ({ ...prev, isOpen: false })); // Close confirmation
+    
     try {
       setLoading(true);
 
@@ -198,7 +212,7 @@ export default function TasksClient() {
         [
           Query.equal("taskId", task.$id),
           Query.equal("status", "pending"),
-          Query.limit(100), // Adjust limit if needed
+          Query.limit(100),
         ]
       );
 
@@ -221,85 +235,153 @@ export default function TasksClient() {
         Query.limit(100),
       ]);
 
+      // Note: "No winners" check is done in handleClosePayout, but we handle it gracefully here too
       if (approved.total === 0) {
-        if (
-          window.confirm(
-            `No approved submissions found. ${rejectedCount} pending submissions were rejected. Close contest without payout?`
-          )
-        ) {
-          await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
+         await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
             status: "closed",
             total_approvals: 0,
           });
-          fetchTasks();
-        }
-        return;
-      }
-
-      const payoutPerUser = Math.floor(task.price / approved.total);
-      let successCount = 0;
-      let failCount = 0;
-
-      // --- 3. Distribute Payouts ---
-      for (const sub of approved.documents) {
-        try {
-          const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
-            Query.equal("userId", sub.userId),
-          ]);
-
-          if (userDocs.total > 0) {
-            const userDoc = userDocs.documents[0];
-            await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
-              balance: userDoc.balance + payoutPerUser,
-            });
-            await databases.createDocument(
-              DB_ID,
-              COL_TRANSACTIONS,
-              ID.unique(),
-              {
-                userId: sub.userId,
-                transaction_amount: payoutPerUser,
-                transaction_created: new Date().toISOString(),
-              }
-            );
-            successCount++;
-          } else {
-            console.warn(`User document not found for userId: ${sub.userId}`);
-            failCount++;
-          }
-        } catch (innerError) {
-          console.error(`Failed to update user ${sub.userId}:`, innerError);
-          failCount++;
-        }
-      }
-
-      // --- 4. Close Task ---
-      await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
-        status: "closed",
-        total_approvals: approved.total,
-      });
-
-      let message = `Successfully distributed ${task.price} among ${approved.total} users (${payoutPerUser} each).`;
-      if (rejectedCount > 0) {
-        message += `\nAlso rejected ${rejectedCount} pending submissions.`;
-      }
-
-      if (failCount > 0) {
-        alert(
-          `Distributed funds to ${successCount} users.\nWARNING: Failed to update ${failCount} users.\n${message}`
-        );
       } else {
-        alert(message);
+          const payoutPerUser = Math.floor(task.price / approved.total);
+          
+          // --- 3. Distribute Payouts ---
+          for (const sub of approved.documents) {
+            try {
+              const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
+                Query.equal("userId", sub.userId),
+              ]);
+
+              if (userDocs.total > 0) {
+                const userDoc = userDocs.documents[0];
+                await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
+                  balance: userDoc.balance + payoutPerUser,
+                });
+                await databases.createDocument(
+                  DB_ID,
+                  COL_TRANSACTIONS,
+                  ID.unique(),
+                  {
+                    userId: sub.userId,
+                    transaction_amount: payoutPerUser,
+                    transaction_created: new Date().toISOString(),
+                  }
+                );
+              }
+            } catch (innerError) {
+              console.error(`Failed to update user ${sub.userId}:`, innerError);
+            }
+          }
+
+          // --- 4. Close Task ---
+          await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
+            status: "closed",
+            total_approvals: approved.total,
+          });
       }
+
+      // --- 5. Result Feedback ---
+      let message = "";
+      if (approved.total > 0) {
+          const payoutPerUser = Math.floor(task.price / approved.total);
+          message = `Successfully distributed ₹${task.price} among ${approved.total} users (₹${payoutPerUser} each).`;
+      } else {
+          message = "Task closed successfully. No payouts were distributed.";
+      }
+      
+      if (rejectedCount > 0) {
+        message += ` Also rejected ${rejectedCount} pending submissions.`;
+      }
+      
+      setConfirmModal({
+        isOpen: true,
+        type: "alert",
+        title: "Success",
+        message: message,
+        confirmText: "Great!",
+        isDanger: false,
+        onConfirm: () => {},
+      });
 
       fetchTasks();
     } catch (error: any) {
       console.error("Payout Failed:", error);
-      alert(
-        `Payout Failed: ${error.message}. Check your Collection Permissions.`
-      );
+      setConfirmModal({
+        isOpen: true,
+        type: "alert",
+        title: "Payout Failed",
+        message: `${error.message}. Check your Collection Permissions.`,
+        confirmText: "OK",
+        isDanger: true,
+        onConfirm: () => {},
+     });
     } finally {
         setLoading(false);
+    }
+  };
+
+  /*
+   * handleClosePayout: 
+   * 1. Fetches pending/approved counts.
+   * 2. Shows a unified confirmation modal with the summary.
+   */
+  const handleClosePayout = async (task: Task) => {
+    try {
+        setLoading(true);
+        // Pre-fetch counts to show in modal
+        const pending = await databases.listDocuments(
+            DB_ID,
+            COL_SUBMISSIONS,
+            [
+                Query.equal("taskId", task.$id),
+                Query.equal("status", "pending"),
+                Query.limit(1)
+            ]
+        );
+        const approved = await databases.listDocuments(
+            DB_ID,
+            COL_SUBMISSIONS,
+            [
+                Query.equal("taskId", task.$id),
+                Query.equal("status", "approved"),
+                Query.limit(1)
+            ]
+        );
+
+        let title = "Close Task & Payout";
+        let message = "";
+        let confirmText = "Close & Payout";
+        
+        // Logic for message
+        if (approved.total === 0) {
+            title = "No Approved Submissions";
+            message = `No approved submissions found. ${pending.total} pending submissions will be rejected. The task will be closed without payout.`;
+            confirmText = "Close Task";
+        } else {
+            const amountPerUser = Math.floor(task.price / approved.total);
+            message = `Found ${approved.total} approved submissions. Payout of ₹${task.price} will be distributed (₹${amountPerUser}/user). ${pending.total} pending submissions will be rejected.`;
+        }
+
+        setLoading(false);
+        setConfirmModal({
+            isOpen: true,
+            title,
+            message,
+            isDanger: true,
+            confirmText,
+            type: "confirm", 
+            onConfirm: () => executePayout(task),
+        });
+
+    } catch (error: any) {
+        setLoading(false);
+        setConfirmModal({
+            isOpen: true,
+            type: "alert",
+            title: "Error",
+            message: "Failed to fetch submission details: " + error.message,
+            confirmText: "OK",
+            onConfirm: () => {},
+        });
     }
   };
 
@@ -383,6 +465,17 @@ export default function TasksClient() {
           </p>
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        isDanger={confirmModal.isDanger}
+        confirmText={confirmModal.confirmText}
+        type={confirmModal.type}
+      />
 
       <TaskModal
         isOpen={isModalOpen}

@@ -8,6 +8,7 @@ import {
   DB_ID,
   COL_SUBMISSIONS,
   COL_TASKS,
+  COL_USERS,
   BUCKET_ID,
 } from "@/app/appwrite/appwrite";
 import { Query } from "appwrite";
@@ -21,12 +22,14 @@ interface Submission {
   fileId: string;
   status: "pending" | "approved" | "rejected";
   submittedAt: string;
+  username?: string;
 }
 
 interface Task {
   $id: string;
   title: string;
   task_type: string;
+  task_status:string;
 }
 
 export default function ReviewClient() {
@@ -73,12 +76,35 @@ export default function ReviewClient() {
         $id: taskDoc.$id,
         title: taskDoc.title,
         task_type: taskDoc.task_type,
+        task_status:taskDoc.status
       });
 
       const response = await databases.listDocuments(DB_ID, COL_SUBMISSIONS, [
         Query.equal("taskId", taskId),
         Query.orderDesc("$createdAt"),
       ]);
+
+      // Fetch Users for these submissions
+      const distinctUserIds = [...new Set(response.documents.map(d => d.userId))];
+      // Note: fetching all individually or list query. For simplicity and small scale, Promise.all get or list is fine.
+      // Better: list users where userId is in ... (not supported easily).
+      // We will perform limited concurrent requests to fetch user details.
+      
+      const userMap = new Map<string, string>();
+      
+      if(distinctUserIds.length > 0) {
+          // If less than say 10, fetch individually. Or fetch all users if not too many?
+          // Let's iterate and fetch.
+           const userPromises = distinctUserIds.map(id => 
+               databases.listDocuments(DB_ID, COL_USERS, [Query.equal("userId", id)]).catch(()=>null)
+           );
+           const usersRes = await Promise.all(userPromises);
+           usersRes.forEach(u => {
+             if(u && u.documents.length > 0) {
+                 userMap.set(u.documents[0].userId, u.documents[0].name);
+             }
+           });
+      }
 
       const mappedSubmissions = response.documents.map((doc: any) => ({
         $id: doc.$id,
@@ -87,6 +113,7 @@ export default function ReviewClient() {
         fileId: doc.fileId,
         status: doc.status,
         submittedAt: doc.submittedAt,
+        username: userMap.get(doc.userId) || "Unknown User",
       })) as Submission[];
 
       setSubmissions(mappedSubmissions);
@@ -232,13 +259,16 @@ export default function ReviewClient() {
               <div className="flex justify-between items-start mb-4">
                 <div>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 uppercase font-bold mb-1">
-                    User ID
+                    Submitted By
                   </p>
                   <p
-                    className="text-sm font-mono text-zinc-800 dark:text-zinc-200 truncate w-32 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded"
-                    title={sub.userId}
+                    className="font-medium text-zinc-900 dark:text-white truncate max-w-[150px]"
+                    title={sub.username || sub.userId}
                   >
-                    {sub.userId}
+                    {sub.username || "Unknown User"}
+                  </p>
+                  <p className="text-xs text-zinc-400 mt-0.5 truncate max-w-[120px]">
+                      {sub.userId}
                   </p>
                 </div>
 
@@ -260,7 +290,7 @@ export default function ReviewClient() {
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-2 gap-3 mt-auto">
+              {task?.task_status === "open" && <div className="grid grid-cols-2 gap-3 mt-auto">
                 {sub.status === "pending" ? (
                   <>
                     <button
@@ -284,7 +314,7 @@ export default function ReviewClient() {
                     Reset Status
                   </button>
                 )}
-              </div>
+              </div>}
             </div>
           ))}
         </div>

@@ -41,7 +41,7 @@ export default function SignUpForm() {
         name: name,
         balance: 0,
       });
-      const redirect_url = "http://192.168.1.6:3000/verify";
+      const redirect_url = `${window.location.origin}/verify`;
       await account.createVerification(redirect_url);
       router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
