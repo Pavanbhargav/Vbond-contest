@@ -102,31 +102,6 @@ export default function Wallet() {
                     <IoWalletOutline className="absolute -right-8 -bottom-12 text-[14rem] opacity-20 rotate-12" />
                 </div>
 
-                {/* Quick Stats or Actions */}
-                <div className="space-y-6">
-                    <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl shadow-sm border border-zinc-100 dark:border-zinc-800">
-                        <h3 className="font-bold text-lg mb-4 text-[var(--foreground)]">Quick Actions</h3>
-                        <div className="space-y-3">
-                             <button className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition">
-                                 <span className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300 font-medium">
-                                    <div className="bg-blue-100 text-blue-600 p-2 rounded-lg"><IoSwapHorizontal /></div>
-                                    Transaction History
-                                 </span>
-                                 <IoArrowUpCircle className="rotate-90 text-zinc-400" />
-                             </button>
-                             <button 
-                                onClick={() => window.location.href='/user/dashboard'}
-                                className="w-full flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition"
-                             >
-                                 <span className="flex items-center gap-3 text-zinc-700 dark:text-zinc-300 font-medium">
-                                    <div className="bg-purple-100 text-purple-600 p-2 rounded-lg"><IoWalletOutline /></div>
-                                    Update Payment Details
-                                 </span>
-                                 <IoArrowUpCircle className="rotate-90 text-zinc-400" />
-                             </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Recent Activity */}

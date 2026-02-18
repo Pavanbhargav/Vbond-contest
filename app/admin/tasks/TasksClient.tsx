@@ -10,6 +10,7 @@ import {
   COL_TRANSACTIONS,
   storage,
   BUCKET_ID,
+  client,
 } from "../../appwrite/appwrite";
 import { ID, Query } from "appwrite";
 import { useAuth } from "../../context/AuthContext";
@@ -60,9 +61,49 @@ export default function TasksClient() {
   };
 
   useEffect(() => {
+    let unsubscribe: () => void;
+
     if (!authLoading && isAdmin) {
       fetchTasks();
+      
+      // Realtime Subscription
+      const channel = `databases.${DB_ID}.collections.${COL_TASKS}.documents`;
+      unsubscribe = client.subscribe(channel, (response) => {
+        const event = response.events[0];
+        const payload = response.payload as any;
+
+        const task: Task = {
+            $id: payload.$id,
+            title: payload.title,
+            description: payload.description,
+            status: payload.status,
+            level: payload.level,
+            price: payload.price,
+            task_type: payload.task_type,
+            deadline: payload.deadline || undefined,
+            fileId: payload.fileId,
+        };
+
+        setTasks((prev) => {
+            if (event.includes(".create")) {
+                return [task, ...prev];
+            }
+            if (event.includes(".update")) {
+                return prev.map((t) => (t.$id === task.$id ? task : t));
+            }
+            if (event.includes(".delete")) {
+                return prev.filter((t) => t.$id !== task.$id);
+            }
+            return prev;
+        });
+      });
     }
+
+    return () => {
+        if (unsubscribe) {
+            unsubscribe();
+        }
+    };
   }, [authLoading, isAdmin]);
 
   const handleSaveTask = async (
@@ -141,7 +182,7 @@ export default function TasksClient() {
   const handleClosePayout = async (task: Task) => {
     if (
       !confirm(
-        `Are you sure you want to close "${task.title}" and process payouts? This action cannot be undone.`,
+        `Are you sure you want to close "${task.title}" and process payouts? This action cannot be undone.`
       )
     ) {
       return;
@@ -149,16 +190,41 @@ export default function TasksClient() {
 
     try {
       setLoading(true);
+
+      // --- 1. Reject Pending Submissions ---
+      const pendingSubmissions = await databases.listDocuments(
+        DB_ID,
+        COL_SUBMISSIONS,
+        [
+          Query.equal("taskId", task.$id),
+          Query.equal("status", "pending"),
+          Query.limit(100), // Adjust limit if needed
+        ]
+      );
+
+      let rejectedCount = 0;
+      for (const sub of pendingSubmissions.documents) {
+        try {
+          await databases.updateDocument(DB_ID, COL_SUBMISSIONS, sub.$id, {
+            status: "rejected",
+          });
+          rejectedCount++;
+        } catch (err) {
+          console.error(`Failed to reject submission ${sub.$id}:`, err);
+        }
+      }
+
+      // --- 2. Process Approved Submissions ---
       const approved = await databases.listDocuments(DB_ID, COL_SUBMISSIONS, [
         Query.equal("taskId", task.$id),
         Query.equal("status", "approved"),
-        Query.limit(100), // Ensure we get all approved submissions (up to 100 for now)
+        Query.limit(100),
       ]);
+
       if (approved.total === 0) {
-        // Determine if we should close without payout
         if (
           window.confirm(
-            "No approved submissions. Close contest without payout?",
+            `No approved submissions found. ${rejectedCount} pending submissions were rejected. Close contest without payout?`
           )
         ) {
           await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
@@ -169,29 +235,33 @@ export default function TasksClient() {
         }
         return;
       }
+
       const payoutPerUser = Math.floor(task.price / approved.total);
       let successCount = 0;
       let failCount = 0;
 
-      // 2. Update Users' Wallets
+      // --- 3. Distribute Payouts ---
       for (const sub of approved.documents) {
         try {
-          // Find user doc by userId
           const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
             Query.equal("userId", sub.userId),
           ]);
 
           if (userDocs.total > 0) {
             const userDoc = userDocs.documents[0];
-            // IMPORTANT: This requires 'role:admin' or appropriate permissions to update OTHER users' documents
             await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
               balance: userDoc.balance + payoutPerUser,
             });
-            await databases.createDocument(DB_ID,COL_TRANSACTIONS,ID.unique(),{
-              userId:sub.userId,
-              transaction_amount: payoutPerUser,
-              transaction_created:new Date().toISOString(),
-            })
+            await databases.createDocument(
+              DB_ID,
+              COL_TRANSACTIONS,
+              ID.unique(),
+              {
+                userId: sub.userId,
+                transaction_amount: payoutPerUser,
+                transaction_created: new Date().toISOString(),
+              }
+            );
             successCount++;
           } else {
             console.warn(`User document not found for userId: ${sub.userId}`);
@@ -203,28 +273,33 @@ export default function TasksClient() {
         }
       }
 
-      // 3. Close the task
+      // --- 4. Close Task ---
       await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
         status: "closed",
         total_approvals: approved.total,
       });
 
+      let message = `Successfully distributed ${task.price} among ${approved.total} users (${payoutPerUser} each).`;
+      if (rejectedCount > 0) {
+        message += `\nAlso rejected ${rejectedCount} pending submissions.`;
+      }
+
       if (failCount > 0) {
         alert(
-          `Distributed funds to ${successCount} users. \nWARNING: Failed to update ${failCount} users. \nCheck Console for details & Appwrite Permissions (Admin needs 'update' access to 'users' collection).`,
+          `Distributed funds to ${successCount} users.\nWARNING: Failed to update ${failCount} users.\n${message}`
         );
       } else {
-        alert(
-          `Successfully distributed ${task.price} among ${approved.total} users (${payoutPerUser} each).`,
-        );
+        alert(message);
       }
 
       fetchTasks();
     } catch (error: any) {
       console.error("Payout Failed:", error);
       alert(
-        `Payout Failed: ${error.message}. Check your Collection Permissions.`,
+        `Payout Failed: ${error.message}. Check your Collection Permissions.`
       );
+    } finally {
+        setLoading(false);
     }
   };
 

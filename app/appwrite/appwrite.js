@@ -1,6 +1,6 @@
-import { Client,Account,Databases,Storage } from "appwrite";
+import { Client,Account,Databases,Storage, Realtime, Channel } from "appwrite";
 
-const client = new Client();
+export const client = new Client();
 
 client
     .setEndpoint(process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT)
@@ -10,6 +10,7 @@ export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
 
+export const realtime = new Realtime(client);
 
 export const DB_ID = process.env.NEXT_PUBLIC_APPWRITE_DATABASE_ID || "";
 export const COL_TASKS = process.env.NEXT_PUBLIC_APPWRITE_TASKS_COLLECTION_ID || "";

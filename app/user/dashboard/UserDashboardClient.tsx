@@ -10,6 +10,7 @@ import {
   COL_SUBMISSIONS,
   COL_TASKS,
   BUCKET_ID,
+  client,
 } from "../../appwrite/appwrite";
 import { Query } from "appwrite";
 import { 
@@ -48,9 +49,45 @@ export default function UserDashboardClient() {
   const [previewFile, setPreviewFile] = useState<{ url: string; type: string } | null>(null);
 
   useEffect(() => {
+    let unsubscribeUsers: () => void;
+    let unsubscribeSubmissions: () => void;
+
     if (user && !authLoading) {
       fetchUserData();
+
+      // 1. Subscribe to User Profile Updates (Balance)
+      // We need to fetch the user document ID first, but for now we can subscribe to the collection 
+      // and filter by userId if we don't have the doc ID handy in user object. 
+      // However, fetchUserData fetches the doc.
+      // Optimization: We can just subscribe to the collection and filter events.
+      
+      const userChannel = `databases.${DB_ID}.collections.${COL_USERS}.documents`;
+      unsubscribeUsers = client.subscribe(userChannel, (response) => {
+         const payload = response.payload as any;
+         if (payload.userId === user.$id) {
+             setStats(prev => ({
+                 ...prev,
+                 balance: payload.balance
+             }));
+         }
+      });
+
+      // 2. Subscribe to Submission Updates
+      const submissionChannel = `databases.${DB_ID}.collections.${COL_SUBMISSIONS}.documents`;
+      unsubscribeSubmissions = client.subscribe(submissionChannel, (response) => {
+          const payload = response.payload as any;
+          if (payload.userId === user.$id) {
+              // Simpler to just refetch to ensure all stats/lists are in sync 
+              // instead of complex local state management for all counts
+              fetchUserData(); 
+          }
+      });
     }
+
+    return () => {
+        if (unsubscribeUsers) unsubscribeUsers();
+        if (unsubscribeSubmissions) unsubscribeSubmissions();
+    };
   }, [user, authLoading]);
 
   const fetchUserData = async () => {
