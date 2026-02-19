@@ -97,7 +97,7 @@ export default function TaskCard({ task, onEdit, onClosePayout }: TaskCardProps)
             </Link>
             <button
                 onClick={() => onEdit(task)}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-zinc-50 hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 dark:bg-zinc-800/50 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white rounded-xl transition-all font-medium text-sm"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 bg-zinc-50 hover:bg-primary2/10 text-zinc-600 hover:text-primary2 dark:bg-zinc-800/50 dark:text-zinc-300 dark:hover:bg-primary2/50 dark:hover:text-white rounded-xl transition-all font-medium text-sm"
                 title="Edit Task"
             >
                 <IoCreateOutline size={18} />

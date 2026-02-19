@@ -20,8 +20,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         <div className="bg-white/70 dark:bg-zinc-900/70 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl rounded-3xl p-8 transform transition-all hover:scale-[1.01]">
           <div className="text-center mb-8">
-            <Link href="/" className="inline-block text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary1 to-primary2 tracking-tighter mb-2">
-              FreeLance
+            <Link href="/" className="inline-block mb-2 transform hover:scale-105 transition-transform">
+              <img src="/VBONDTALENT.png" alt="Vbond Talent" className="h-12 w-auto mx-auto" />
             </Link>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Welcome Back</h2>
             <p className="text-zinc-500 dark:text-zinc-400 mt-2 text-sm">Please sign in to your account</p>

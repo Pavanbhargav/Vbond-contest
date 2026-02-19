@@ -188,7 +188,7 @@ export default function AdminProfileClient() {
                 <button
                     type="submit"
                     disabled={saving}
-                    className="w-full flex items-center justify-center gap-2 bg-[var(--primary1)] text-white font-bold py-3 px-6 rounded-lg hover:bg-[var(--primary1)]/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 bg-primary2/10 text-white font-bold py-3 px-6 rounded-lg hover:bg-primary2/90 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {saving ? (
                         <>Saving...</>
