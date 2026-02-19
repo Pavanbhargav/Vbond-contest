@@ -76,14 +76,14 @@ export default function Sidebar({ links, logout, isOpen, setIsOpen }: SidebarPro
           {isMobile && (
             <button 
               onClick={() => setIsOpen(false)}
-              className="absolute right-4 text-zinc-500 dark:text-zinc-400 hover:text-[var(--primary1)]"
+              className="absolute right-4 text-zinc-500 dark:text-zinc-400 hover:text-primary1"
             >
               <IoClose size={24} />
             </button>
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 custom-scrollbar">
+        <nav className="flex-1 overflow-y-auto py-6 px-3 ">
           <ul className="space-y-2">
             {links.map((link) => {
               const isActive = pathname === link.href;
@@ -94,12 +94,12 @@ export default function Sidebar({ links, logout, isOpen, setIsOpen }: SidebarPro
                     onClick={() => isMobile && setIsOpen(false)}
                     className={`flex items-center px-3 py-3 rounded-xl transition-all duration-200 group relative ${
                       isActive
-                        ? "bg-gradient-to-r from-[var(--primary1)] to-[var(--primary1)]/80 text-white shadow-lg shadow-[var(--primary1)]/20"
-                        : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-[var(--primary1)] dark:hover:text-[var(--primary1)]"
+                        ? "bg-primary1 text-white shadow-lg shadow-primary1/20"
+                        : "text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-primary1 dark:hover:text-primary1"
                     }`}
                   >
                     <div className="flex items-center justify-center min-w-[24px]">
-                        <link.icon className={`text-xl ${isActive ? 'animate-pulse' : ''}`} />
+                        <link.icon className={`text-xl`} />
                     </div>
                     <span
                       className={`ml-4 font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${

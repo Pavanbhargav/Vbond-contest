@@ -3,7 +3,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
-import { IoGrid, IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase, IoPerson } from "react-icons/io5";
+import { IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase, IoPerson, IoPieChart } from "react-icons/io5";
 import { useState, useEffect } from "react";
 
 export default function AdminLayout({
@@ -42,7 +42,7 @@ export default function AdminLayout({
   }
 
   const adminLinks = [
-    { label: "Dashboard", href: "/admin/dashboard", icon: IoGrid },
+    { label: "Dashboard", href: "/admin/dashboard", icon: IoPieChart },
     {label:'Tasks' ,href:'/admin/tasks',icon:IoBriefcase},
     { label: "Submissions", href: "/admin/submissions", icon: IoDocumentText },
     {
@@ -54,7 +54,7 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="flex min-h-screen bg-[var(--background)]">
+    <div className="flex min-h-screen bg-background">
       <Sidebar 
         links={adminLinks} 
         logout={handleLogout} 
@@ -70,7 +70,7 @@ export default function AdminLayout({
         >
           <IoMenu size={24} />
         </button>
-        <span className="ml-3 font-bold text-lg text-[var(--foreground)]">Admin Panel</span>
+        <span className="ml-3 font-bold text-lg text-foreground">Admin Panel</span>
       </div>
 
       <main className="flex-1 lg:ml-20 transition-all duration-300 ease-in-out p-4 pt-20 lg:p-8 overflow-x-hidden">

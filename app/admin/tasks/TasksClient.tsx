@@ -408,7 +408,7 @@ export default function TasksClient() {
 
         <button
           onClick={openCreateModal}
-          className="flex items-center justify-center gap-2 bg-gradient-to-r from-[var(--primary1)] to-[var(--primary2)] text-white px-6 py-3 rounded-xl hover:shadow-lg hover:shadow-[var(--primary1)]/20 active:scale-95 transition-all font-medium"
+          className="flex items-center justify-center gap-2 bg-primary2 text-white px-6 py-3 rounded-full hover:shadow-lg hover:-primary2/20 active:scale-95 transition-all font-medium"
         >
           <IoAdd size={20} />
           Create Task
