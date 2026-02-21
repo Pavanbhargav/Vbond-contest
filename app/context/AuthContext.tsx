@@ -9,6 +9,8 @@ import {
 import { account } from "../appwrite/appwrite";
 import { Models } from "appwrite";
 import { useRouter } from "next/navigation";
+import { DB_ID,databases,COL_USERS } from "../appwrite/appwrite";
+import { Query } from "appwrite";
 
 
 export interface AuthContextType {
@@ -47,9 +49,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       // Check for Admin status in Database (Dynamic Role)
       try {
-        const { DB_ID, COL_USERS, databases } = await import("../appwrite/appwrite");
-        const { Query } = await import("appwrite");
-        
         const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
             Query.equal("userId", accountDetails.$id)
         ]);
