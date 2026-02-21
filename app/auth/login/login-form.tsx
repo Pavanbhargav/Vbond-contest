@@ -22,12 +22,14 @@ export default function LoginForm() {
   const router = useRouter();
 
   useEffect(() => {
-    if (user?.labels?.includes("admin")) {
-      router.replace("/admin");
-    } else {
-      router.replace("/user");
+    if (user) {
+      if (user.labels?.includes("admin")) {
+        router.replace("/admin");
+      } else {
+        router.replace("/user");
+      }
     }
-  }, [user, login]);
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
