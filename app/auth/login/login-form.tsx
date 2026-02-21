@@ -1,10 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
 import { databases, DB_ID, COL_USERS } from "../../appwrite/appwrite";
-import { IoEye, IoEyeOff, IoLockClosedOutline, IoMailOutline } from "react-icons/io5";
+import {
+  IoEye,
+  IoEyeOff,
+  IoLockClosedOutline,
+  IoMailOutline,
+} from "react-icons/io5";
 import { motion } from "framer-motion";
 
 export default function LoginForm() {
@@ -12,9 +17,17 @@ export default function LoginForm() {
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
-  const [showPassword,setShowPassword] = useState(false);
-  const { login,user } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, user } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (user?.labels?.includes("admin")) {
+      router.replace("/admin");
+    } else {
+      router.replace("/user");
+    }
+  }, [user, login]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,15 +63,15 @@ export default function LoginForm() {
   };
 
   return (
-    <motion.form 
+    <motion.form
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
-      onSubmit={handleSubmit} 
+      onSubmit={handleSubmit}
       className="w-full space-y-5"
     >
       {error && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
           className="p-4 bg-red-50/50 border border-red-200 text-red-600 text-sm rounded-xl backdrop-blur-sm dark:bg-red-900/20 dark:border-red-900/20 "
@@ -74,7 +87,10 @@ export default function LoginForm() {
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <IoMailOutline size={20} className="text-zinc-400 group-focus-within:text-primary1 transition-colors" />
+            <IoMailOutline
+              size={20}
+              className="text-zinc-400 group-focus-within:text-primary1 transition-colors"
+            />
           </div>
           <input
             type="email"
@@ -89,11 +105,14 @@ export default function LoginForm() {
 
       <div className="space-y-1.5">
         <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block ml-1">
-            Password
+          Password
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <IoLockClosedOutline size={20} className="text-zinc-400 group-focus-within:text-primary1 transition-colors" />
+            <IoLockClosedOutline
+              size={20}
+              className="text-zinc-400 group-focus-within:text-primary1 transition-colors"
+            />
           </div>
           <input
             type={showPassword ? "text" : "password"}
@@ -119,9 +138,7 @@ export default function LoginForm() {
         type="submit"
         disabled={loading}
         className={`w-full py-2 px-4 rounded-xl text-white font-bold text-lg shadow-lg shadow-primary1/20 transition-all duration-300 transform ${
-          loading
-            ? "bg-zinc-400 cursor-not-allowed"
-            : "bg-primary1"
+          loading ? "bg-zinc-400 cursor-not-allowed" : "bg-primary1"
         }`}
       >
         {loading ? (
