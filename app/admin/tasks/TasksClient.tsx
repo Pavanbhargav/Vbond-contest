@@ -263,6 +263,8 @@ export default function TasksClient() {
                   {
                     userId: sub.userId,
                     transaction_amount: payoutPerUser,
+                    transaction_type:'credit',
+                    transaction_description: `Payout for task "${task.title}"`,
                     transaction_created: new Date().toISOString(),
                   }
                 );
