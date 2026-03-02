@@ -20,7 +20,7 @@ export default function Home() {
         }
       } else {
         // Not logged in: route to login page
-        router.replace('/login');
+        router.replace('/auth/login');
       }
     }
   }, [user, isAdmin, loading, router]);
