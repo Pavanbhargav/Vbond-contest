@@ -74,7 +74,7 @@ export default function UserDashboardClient() {
 
       // 2. Subscribe to Submission Updates
       const submissionChannel = `databases.${DB_ID}.collections.${COL_SUBMISSIONS}.documents`;
-      unsubscribeSubmissions = client.subscribe(submissionChannel, (response) => {
+      unsubscribeSubmissions = client.subscribe([submissionChannel], (response) => {
           const payload = response.payload as any;
           if (payload.userId === user.$id) {
               // Simpler to just refetch to ensure all stats/lists are in sync 

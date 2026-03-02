@@ -7,7 +7,10 @@ import {
   IoCloudDownloadOutline,
 } from "react-icons/io5";
 import { Task } from "./UserTaskCard";
-import { storage, BUCKET_ID } from "../../appwrite/appwrite";
+import { storage, databases, BUCKET_ID, DB_ID, COL_SUBMISSIONS } from "../../appwrite/appwrite";
+import { Query } from "appwrite";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 
 interface TaskPreviewModalProps {
   isOpen: boolean;
@@ -22,6 +25,51 @@ export default function TaskPreviewModal({
   task,
   onOpenSubmission,
 }: TaskPreviewModalProps) {
+  const { user } = useAuth();
+  const [totalWinners, setTotalWinners] = useState<number>(0);
+  const [isCurrentUserWinner, setIsCurrentUserWinner] = useState(false);
+
+  useEffect(() => {
+    const fetchWinnersData = async () => {
+        if (!isOpen || !task) return;
+        
+        try {
+            // First check if current user is a winner
+            if (user?.$id) {
+                const userSubmission = await databases.listDocuments(
+                    DB_ID,
+                    COL_SUBMISSIONS,
+                    [
+                        Query.equal('taskId', task.$id),
+                        Query.equal('userId', user.$id)
+                    ]
+                );
+                
+                const isWinner = userSubmission.documents.length > 0 && userSubmission.documents[0].status === 'approved';
+                setIsCurrentUserWinner(isWinner);
+                
+                // If they are a winner, fetch total winners
+                if (isWinner) {
+                    const winnersResponse = await databases.listDocuments(
+                        DB_ID,
+                        COL_SUBMISSIONS,
+                        [
+                            Query.equal('taskId', task.$id),
+                            Query.equal('status', 'approved')
+                        ]
+                    );
+                    setTotalWinners(winnersResponse.total || winnersResponse.documents.length);
+                }
+            } else {
+                 setIsCurrentUserWinner(false);
+            }
+        } catch (err) {
+            console.error("Error fetching winners data:", err);
+        }
+    };
+
+    fetchWinnersData();
+  }, [isOpen, task, user?.$id]);
   if (!task) return null;
 
   const levelColors = {
@@ -83,6 +131,15 @@ export default function TaskPreviewModal({
               <div className="mb-6 p-4 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30 leading-relaxed">
                 <span className="font-bold">Disclaimer:</span> The reward amount shown will be distributed among the users who demonstrate remarkable talent. If only a single submission is approved, that user will receive the full reward amount.
               </div>
+
+              {isCurrentUserWinner && (
+                  <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-200 dark:border-emerald-800/30 text-emerald-800 dark:text-emerald-400 text-sm leading-relaxed text-left w-full">
+                      <span className="font-bold flex items-center gap-2 mb-1">
+                          <IoCheckmarkCircle size={18} /> Congratulations!
+                      </span>
+                      This task has {totalWinners} winners and one of the winners is you.
+                  </div>
+              )}
 
               <h2 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white mb-6 leading-tight">
                 {task.title}

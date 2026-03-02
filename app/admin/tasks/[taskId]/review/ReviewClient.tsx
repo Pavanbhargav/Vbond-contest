@@ -23,6 +23,7 @@ interface Submission {
   status: "pending" | "approved" | "rejected";
   submittedAt: string;
   username?: string;
+  amount_shared?: number;
 }
 
 interface Task {
@@ -42,6 +43,8 @@ export default function ReviewClient() {
   const [task, setTask] = useState<Task | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [approvingSubId, setApprovingSubId] = useState<string | null>(null);
+  const [amountShared, setAmountShared] = useState<string>("");
   const [previewFile, setPreviewFile] = useState<{
     url: string;
     type: string;
@@ -114,6 +117,7 @@ export default function ReviewClient() {
         status: doc.status,
         submittedAt: doc.submittedAt,
         username: userMap.get(doc.userId) || "Unknown User",
+        amount_shared: doc.amount_shared,
       })) as Submission[];
 
       setSubmissions(mappedSubmissions);
@@ -128,17 +132,49 @@ export default function ReviewClient() {
   const updateStatus = async (
     subId: string,
     status: "approved" | "rejected" | "pending",
+    amount?: number
   ) => {
     try {
-      await databases.updateDocument(DB_ID, COL_SUBMISSIONS, subId, { status });
+      const updateData: any = { status };
+      if (status === "approved" && amount !== undefined) {
+          updateData.amount_shared = amount;
+      } else if (status === "pending") {
+          updateData.amount_shared = null; // optional: reset amount if pending again
+      }
+
+      await databases.updateDocument(DB_ID, COL_SUBMISSIONS, subId, updateData);
 
       setSubmissions((prev) =>
-        prev.map((s) => (s.$id === subId ? { ...s, status } : s)),
+        prev.map((s) => (s.$id === subId ? { ...s, status, amount_shared: amount } : s)),
       );
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status");
+    } finally {
+        if (status === "approved" || status === "pending") {
+            setApprovingSubId(null);
+            setAmountShared("");
+        }
     }
+  };
+
+  const handleApproveClick = (subId: string) => {
+      setApprovingSubId(subId);
+      setAmountShared(""); // Reset input
+  };
+
+  const handleConfirmApprove = (subId: string) => {
+      const amount = parseFloat(amountShared);
+      if (isNaN(amount) || amount < 0) {
+          alert("Please enter a valid amount.");
+          return;
+      }
+      updateStatus(subId, "approved", amount);
+  };
+
+  const handleCancelApprove = () => {
+      setApprovingSubId(null);
+      setAmountShared("");
   };
 
   const getFileView = (fileId: string) => {
@@ -273,7 +309,7 @@ export default function ReviewClient() {
                 </div>
 
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ${
+                  className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border flex items-center gap-1 ${
                     sub.status === "approved"
                       ? "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
                       : sub.status === "rejected"
@@ -282,6 +318,9 @@ export default function ReviewClient() {
                   }`}
                 >
                   {sub.status}
+                  {sub.status === "approved" && sub.amount_shared !== undefined && sub.amount_shared !== null && (
+                      <span className="opacity-80"> (₹{sub.amount_shared})</span>
+                  )}
                 </span>
               </div>
 
@@ -293,18 +332,51 @@ export default function ReviewClient() {
               {task?.task_status === "open" && <div className="grid grid-cols-2 gap-3 mt-auto">
                 {sub.status === "pending" ? (
                   <>
-                    <button
-                      onClick={() => updateStatus(sub.$id, "rejected")}
-                      className="bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
-                    >
-                      <IoClose /> Reject
-                    </button>
-                    <button
-                      onClick={() => updateStatus(sub.$id, "approved")}
-                      className="bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
-                    >
-                      <IoCheckmark /> Approve
-                    </button>
+                    {approvingSubId === sub.$id ? (
+                      <div className="col-span-2 flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                             <span className="text-zinc-500 font-medium">₹</span>
+                             <input 
+                                 type="number" 
+                                 value={amountShared}
+                                 onChange={(e) => setAmountShared(e.target.value)}
+                                 placeholder="Amount to share"
+                                 className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                                 min="0"
+                                 autoFocus
+                             />
+                        </div>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleCancelApprove}
+                                className="flex-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-300 py-2 rounded-lg transition font-medium text-sm"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => handleConfirmApprove(sub.$id)}
+                                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition font-medium text-sm flex items-center justify-center gap-1"
+                            >
+                                <IoCheckmark /> Confirm
+                            </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => updateStatus(sub.$id, "rejected")}
+                          className="bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
+                        >
+                          <IoClose /> Reject
+                        </button>
+                        <button
+                          onClick={() => handleApproveClick(sub.$id)}
+                          className="bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
+                        >
+                          <IoCheckmark /> Approve
+                        </button>
+                      </>
+                    )}
                   </>
                 ) : (
                   <button

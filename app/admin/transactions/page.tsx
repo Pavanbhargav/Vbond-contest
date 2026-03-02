@@ -391,60 +391,66 @@ export default function Transactions() {
                       )}
                     </td>
                     <td className="px-6 py-4 text-right align-middle">
-                      {txn.transaction_status === "Pending" && (
-                        <div className="flex flex-col gap-2 items-end justify-center">
-                          <label className="relative cursor-pointer group/upload">
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 group-hover/upload:border-[var(--primary1)] transition-colors">
-                              <IoDocumentTextOutline className="text-zinc-400 group-hover/upload:text-[var(--primary1)]" />
-                              <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 group-hover/upload:text-[var(--primary1)] whitespace-nowrap">
-                                {uploadFiles[txn.$id]
-                                  ? uploadFiles[txn.$id]?.name.slice(0, 15) + "..."
-                                  : "Choose File"}
-                              </span>
-                            </div>
-                            <input
-                              type="file"
-                              accept="image/*,.pdf"
-                              onChange={(e) =>
-                                handleFileChange(
-                                  txn.$id,
-                                  e.target.files ? e.target.files[0] : null
-                                )
-                              }
-                              className="sr-only"
-                            />
-                          </label>
+                      {txn.transaction_type === "credit" ? (
+                        <span className="text-zinc-400 dark:text-zinc-500 font-medium">-</span>
+                      ) : (
+                        <>
+                          {txn.transaction_status === "Pending" && (
+                            <div className="flex flex-col gap-2 items-end justify-center">
+                              <label className="relative cursor-pointer group/upload">
+                                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 group-hover/upload:border-[var(--primary1)] transition-colors">
+                                  <IoDocumentTextOutline className="text-zinc-400 group-hover/upload:text-[var(--primary1)]" />
+                                  <span className="text-[11px] font-medium text-zinc-600 dark:text-zinc-400 group-hover/upload:text-[var(--primary1)] whitespace-nowrap">
+                                    {uploadFiles[txn.$id]
+                                      ? uploadFiles[txn.$id]?.name.slice(0, 15) + "..."
+                                      : "Choose File"}
+                                  </span>
+                                </div>
+                                <input
+                                  type="file"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleFileChange(
+                                      txn.$id,
+                                      e.target.files ? e.target.files[0] : null
+                                    )
+                                  }
+                                  className="sr-only"
+                                />
+                              </label>
 
-                          <div className="flex items-center gap-2 mt-1">
-                            <button
-                              onClick={() => markAsComplete(txn)}
-                              disabled={
-                                processingId === txn.$id ||
-                                (!uploadFiles[txn.$id] && txn.transaction_type !== "credit")
-                              }
-                              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-500 text-white rounded-lg text-[11px] font-bold hover:bg-green-600 transition-all shadow-sm shadow-green-500/30 hover:shadow-md disabled:opacity-50 disabled:shadow-none hover:-translate-y-0.5"
-                            >
-                              {processingId === txn.$id ? (
-                                "..."
-                              ) : (
-                                <>
-                                  <IoCheckmarkCircleOutline className="text-sm" /> Complete
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                      {txn.transaction_status === "Complete" && txn.transaction_file_id && (
-                        <div className="flex justify-end mt-1">
-                          <button
-                            onClick={() => markAsReverted(txn)}
-                            disabled={processingId === txn.$id}
-                            className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-100 text-red-600 dark:bg-zinc-800/80 dark:text-red-400 rounded-lg text-[11px] font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all disabled:opacity-50 border border-transparent hover:border-red-200 dark:hover:border-red-900/30"
-                          >
-                            <IoCloseCircleOutline className="text-sm" /> Revert to Pending
-                          </button>
-                        </div>
+                              <div className="flex items-center gap-2 mt-1">
+                                <button
+                                  onClick={() => markAsComplete(txn)}
+                                  disabled={
+                                    processingId === txn.$id ||
+                                    (!uploadFiles[txn.$id] && txn.transaction_type !== "credit")
+                                  }
+                                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-500 text-white rounded-lg text-[11px] font-bold hover:bg-green-600 transition-all shadow-sm shadow-green-500/30 hover:shadow-md disabled:opacity-50 disabled:shadow-none hover:-translate-y-0.5"
+                                >
+                                  {processingId === txn.$id ? (
+                                    "..."
+                                  ) : (
+                                    <>
+                                      <IoCheckmarkCircleOutline className="text-sm" /> Complete
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                          {txn.transaction_status === "Complete" && txn.transaction_file_id && (
+                            <div className="flex justify-end mt-1">
+                              <button
+                                onClick={() => markAsReverted(txn)}
+                                disabled={processingId === txn.$id}
+                                className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-zinc-100 text-red-600 dark:bg-zinc-800/80 dark:text-red-400 rounded-lg text-[11px] font-bold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all disabled:opacity-50 border border-transparent hover:border-red-200 dark:hover:border-red-900/30"
+                              >
+                                <IoCloseCircleOutline className="text-sm" /> Revert to Pending
+                              </button>
+                            </div>
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>

@@ -55,7 +55,7 @@ export default function UserTasksClient() {
         unsubscribe = client.subscribe(channel, (realtimeResponse) => {
           const event = realtimeResponse.events[0];
           const payload = realtimeResponse.payload as any;
-          
+
           // Map the single new/updated payload to your Task format
           const newTask: Task = {
              $id: payload.$id,
