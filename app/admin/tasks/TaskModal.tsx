@@ -293,7 +293,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-8 py-3 rounded-xl bg-gradient-to-r from-[var(--primary1)] to-[var(--primary2)] text-white font-bold shadow-lg hover:shadow-[var(--primary1)]/20 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="px-8 py-3 rounded-xl bg-primary1 text-white font-bold shadow-lg hover:shadow-[var(--primary1)]/20 active:scale-95 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

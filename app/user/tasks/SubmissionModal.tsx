@@ -183,23 +183,25 @@ export default function SubmissionModal({ isOpen, onClose, task, userId }: Submi
                     <div className="flex flex-col gap-3 w-full max-w-xs">
                         <button
                             onClick={onClose}
-                            className="w-full px-6 py-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors"
+                            className={`w-full px-6 py-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-zinc-700 dark:text-zinc-300 font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors ${existingSubmission?.status === 'approved' || existingSubmission?.status === 'rejected' ? 'col-span-full' : ''}`}
                         >
                             Close
                         </button>
-                        <button
-                             onClick={handleDelete}
-                             disabled={isUploading}
-                             className="w-full px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-2"
-                        >
-                            {isUploading ? (
-                                <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    <IoTrashOutline /> Delete & Re-submit
-                                </>
-                            )}
-                        </button>
+                        {existingSubmission?.status !== 'approved' && existingSubmission?.status !== 'rejected' && (
+                            <button
+                                 onClick={handleDelete}
+                                 disabled={isUploading}
+                                 className="w-full px-6 py-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium rounded-xl hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center gap-2"
+                            >
+                                {isUploading ? (
+                                    <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        <IoTrashOutline /> Delete & Re-submit
+                                    </>
+                                )}
+                            </button>
+                        )}
                     </div>
                 </div>
             ) : success ? (

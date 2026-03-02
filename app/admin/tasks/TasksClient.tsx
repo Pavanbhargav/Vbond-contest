@@ -242,35 +242,40 @@ export default function TasksClient() {
             total_approvals: 0,
           });
       } else {
-          const payoutPerUser = Math.floor(task.price / approved.total);
+          let totalDistributedAmount = 0;
           
           // --- 3. Distribute Payouts ---
           for (const sub of approved.documents) {
-            try {
-              const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
-                Query.equal("userId", sub.userId),
-              ]);
+            const amountToShare = sub.amount_shared || 0;
+            totalDistributedAmount += amountToShare;
 
-              if (userDocs.total > 0) {
-                const userDoc = userDocs.documents[0];
-                await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
-                  balance: userDoc.balance + payoutPerUser,
-                });
-                await databases.createDocument(
-                  DB_ID,
-                  COL_TRANSACTIONS,
-                  ID.unique(),
-                  {
-                    userId: sub.userId,
-                    transaction_amount: payoutPerUser,
+            if (amountToShare > 0) {
+              try {
+                const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
+                  Query.equal("userId", sub.userId),
+                ]);
+
+                if (userDocs.total > 0) {
+                  const userDoc = userDocs.documents[0];
+                  await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
+                    balance: userDoc.balance + amountToShare,
+                  });
+                  await databases.createDocument(
+                    DB_ID,
+                    COL_TRANSACTIONS,
+                    ID.unique(),
+                    {
+                      userId: sub.userId,
+                      transaction_amount: amountToShare,
                     transaction_type:'credit',
                     transaction_description: `Payout for task "${task.title}"`,
                     transaction_created: new Date().toISOString(),
                   }
-                );
+                  );
+                }
+              } catch (innerError) {
+                console.error(`Failed to update user ${sub.userId}:`, innerError);
               }
-            } catch (innerError) {
-              console.error(`Failed to update user ${sub.userId}:`, innerError);
             }
           }
 
@@ -284,8 +289,9 @@ export default function TasksClient() {
       // --- 5. Result Feedback ---
       let message = "";
       if (approved.total > 0) {
-          const payoutPerUser = Math.floor(task.price / approved.total);
-          message = `Successfully distributed ₹${task.price} among ${approved.total} users (₹${payoutPerUser} each).`;
+          // Calculate total distributed amount again for feedback
+          const totalDistributedAmount = approved.documents.reduce((sum: number, sub: any) => sum + (sub.amount_shared || 0), 0);
+          message = `Successfully distributed a total of ₹${totalDistributedAmount} among ${approved.total} users based on their approved amounts.`;
       } else {
           message = "Task closed successfully. No payouts were distributed.";
       }
@@ -345,7 +351,7 @@ export default function TasksClient() {
             [
                 Query.equal("taskId", task.$id),
                 Query.equal("status", "approved"),
-                Query.limit(1)
+                Query.limit(100)
             ]
         );
 
@@ -359,8 +365,8 @@ export default function TasksClient() {
             message = `No approved submissions found. ${pending.total} pending submissions will be rejected. The task will be closed without payout.`;
             confirmText = "Close Task";
         } else {
-            const amountPerUser = Math.floor(task.price / approved.total);
-            message = `Found ${approved.total} approved submissions. Payout of ₹${task.price} will be distributed (₹${amountPerUser}/user). ${pending.total} pending submissions will be rejected.`;
+            const totalDistributedAmount = approved.documents.reduce((sum: number, sub: any) => sum + (sub.amount_shared || 0), 0);
+            message = `Found ${approved.total} approved submissions. Total preset payout of ₹${totalDistributedAmount} will be distributed. ${pending.total} pending submissions will be rejected.`;
         }
 
         setLoading(false);
