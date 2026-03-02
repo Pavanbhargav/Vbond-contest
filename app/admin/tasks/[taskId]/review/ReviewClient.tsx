@@ -12,7 +12,13 @@ import {
   BUCKET_ID,
 } from "@/app/appwrite/appwrite";
 import { Query } from "appwrite";
-import { IoArrowBack, IoCheckmark, IoClose, IoEye, IoCloudDownloadOutline } from "react-icons/io5";
+import {
+  IoArrowBack,
+  IoCheckmark,
+  IoClose,
+  IoEye,
+  IoCloudDownloadOutline,
+} from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Submission {
@@ -30,7 +36,8 @@ interface Task {
   $id: string;
   title: string;
   task_type: string;
-  task_status:string;
+  task_status: string;
+  task_amount?: number;
 }
 
 export default function ReviewClient() {
@@ -79,7 +86,8 @@ export default function ReviewClient() {
         $id: taskDoc.$id,
         title: taskDoc.title,
         task_type: taskDoc.task_type,
-        task_status:taskDoc.status
+        task_status: taskDoc.status,
+        task_amount: taskDoc.price,
       });
 
       const response = await databases.listDocuments(DB_ID, COL_SUBMISSIONS, [
@@ -88,25 +96,29 @@ export default function ReviewClient() {
       ]);
 
       // Fetch Users for these submissions
-      const distinctUserIds = [...new Set(response.documents.map(d => d.userId))];
+      const distinctUserIds = [
+        ...new Set(response.documents.map((d) => d.userId)),
+      ];
       // Note: fetching all individually or list query. For simplicity and small scale, Promise.all get or list is fine.
       // Better: list users where userId is in ... (not supported easily).
       // We will perform limited concurrent requests to fetch user details.
-      
+
       const userMap = new Map<string, string>();
-      
-      if(distinctUserIds.length > 0) {
-          // If less than say 10, fetch individually. Or fetch all users if not too many?
-          // Let's iterate and fetch.
-           const userPromises = distinctUserIds.map(id => 
-               databases.listDocuments(DB_ID, COL_USERS, [Query.equal("userId", id)]).catch(()=>null)
-           );
-           const usersRes = await Promise.all(userPromises);
-           usersRes.forEach(u => {
-             if(u && u.documents.length > 0) {
-                 userMap.set(u.documents[0].userId, u.documents[0].name);
-             }
-           });
+
+      if (distinctUserIds.length > 0) {
+        // If less than say 10, fetch individually. Or fetch all users if not too many?
+        // Let's iterate and fetch.
+        const userPromises = distinctUserIds.map((id) =>
+          databases
+            .listDocuments(DB_ID, COL_USERS, [Query.equal("userId", id)])
+            .catch(() => null),
+        );
+        const usersRes = await Promise.all(userPromises);
+        usersRes.forEach((u) => {
+          if (u && u.documents.length > 0) {
+            userMap.set(u.documents[0].userId, u.documents[0].name);
+          }
+        });
       }
 
       const mappedSubmissions = response.documents.map((doc: any) => ({
@@ -132,49 +144,51 @@ export default function ReviewClient() {
   const updateStatus = async (
     subId: string,
     status: "approved" | "rejected" | "pending",
-    amount?: number
+    amount?: number,
   ) => {
     try {
       const updateData: any = { status };
       if (status === "approved" && amount !== undefined) {
-          updateData.amount_shared = amount;
+        updateData.amount_shared = amount;
       } else if (status === "pending") {
-          updateData.amount_shared = null; // optional: reset amount if pending again
+        updateData.amount_shared = null; // optional: reset amount if pending again
       }
 
       await databases.updateDocument(DB_ID, COL_SUBMISSIONS, subId, updateData);
 
       setSubmissions((prev) =>
-        prev.map((s) => (s.$id === subId ? { ...s, status, amount_shared: amount } : s)),
+        prev.map((s) =>
+          s.$id === subId ? { ...s, status, amount_shared: amount } : s,
+        ),
       );
     } catch (error) {
       console.error("Error updating status:", error);
       alert("Failed to update status");
     } finally {
-        if (status === "approved" || status === "pending") {
-            setApprovingSubId(null);
-            setAmountShared("");
-        }
+      if (status === "approved" || status === "pending") {
+        setApprovingSubId(null);
+        setAmountShared("");
+      }
     }
   };
 
   const handleApproveClick = (subId: string) => {
-      setApprovingSubId(subId);
-      setAmountShared(""); // Reset input
+    setApprovingSubId(subId);
+    setAmountShared(""); // Reset input
   };
 
   const handleConfirmApprove = (subId: string) => {
-      const amount = parseFloat(amountShared);
-      if (isNaN(amount) || amount < 0) {
-          alert("Please enter a valid amount.");
-          return;
-      }
-      updateStatus(subId, "approved", amount);
+    const amount = parseFloat(amountShared);
+    if (isNaN(amount) || amount < 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+    updateStatus(subId, "approved", amount);
   };
 
   const handleCancelApprove = () => {
-      setApprovingSubId(null);
-      setAmountShared("");
+    setApprovingSubId(null);
+    setAmountShared("");
   };
 
   const getFileView = (fileId: string) => {
@@ -212,6 +226,9 @@ export default function ReviewClient() {
             For Task:{" "}
             <span className="font-semibold">{task?.title || "Loading..."}</span>
           </p>
+        </div>
+        <div className="bg-primary2/10 text-primary2 px-4 py-2 flex items-center gap-1 rounded-full ml-auto">
+          Task Amount: <p className="font-bold text-xl">{task?.task_amount}</p>
         </div>
       </div>
 
@@ -279,7 +296,9 @@ export default function ReviewClient() {
                     <IoEye /> Preview
                   </div>
                   <a
-                    href={storage.getFileDownload(BUCKET_ID, sub.fileId).toString()}
+                    href={storage
+                      .getFileDownload(BUCKET_ID, sub.fileId)
+                      .toString()}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
@@ -304,7 +323,7 @@ export default function ReviewClient() {
                     {sub.username || "Unknown User"}
                   </p>
                   <p className="text-xs text-zinc-400 mt-0.5 truncate max-w-[120px]">
-                      {sub.userId}
+                    {sub.userId}
                   </p>
                 </div>
 
@@ -318,9 +337,14 @@ export default function ReviewClient() {
                   }`}
                 >
                   {sub.status}
-                  {sub.status === "approved" && sub.amount_shared !== undefined && sub.amount_shared !== null && (
-                      <span className="opacity-80"> (₹{sub.amount_shared})</span>
-                  )}
+                  {sub.status === "approved" &&
+                    sub.amount_shared !== undefined &&
+                    sub.amount_shared !== null && (
+                      <span className="opacity-80">
+                        {" "}
+                        (₹{sub.amount_shared})
+                      </span>
+                    )}
                 </span>
               </div>
 
@@ -329,64 +353,66 @@ export default function ReviewClient() {
               </div>
 
               {/* Action Buttons */}
-              {task?.task_status === "open" && <div className="grid grid-cols-2 gap-3 mt-auto">
-                {sub.status === "pending" ? (
-                  <>
-                    {approvingSubId === sub.$id ? (
-                      <div className="col-span-2 flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                             <span className="text-zinc-500 font-medium">₹</span>
-                             <input 
-                                 type="number" 
-                                 value={amountShared}
-                                 onChange={(e) => setAmountShared(e.target.value)}
-                                 placeholder="Amount to share"
-                                 className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
-                                 min="0"
-                                 autoFocus
-                             />
-                        </div>
-                        <div className="flex gap-2">
+              {task?.task_status === "open" && (
+                <div className="grid grid-cols-2 gap-3 mt-auto">
+                  {sub.status === "pending" ? (
+                    <>
+                      {approvingSubId === sub.$id ? (
+                        <div className="col-span-2 flex flex-col gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-zinc-500 font-medium">₹</span>
+                            <input
+                              type="number"
+                              value={amountShared}
+                              onChange={(e) => setAmountShared(e.target.value)}
+                              placeholder="Amount to share"
+                              className="flex-1 px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                              min="0"
+                              autoFocus
+                            />
+                          </div>
+                          <div className="flex gap-2">
                             <button
-                                onClick={handleCancelApprove}
-                                className="flex-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-300 py-2 rounded-lg transition font-medium text-sm"
+                              onClick={handleCancelApprove}
+                              className="flex-1 bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-300 py-2 rounded-lg transition font-medium text-sm"
                             >
-                                Cancel
+                              Cancel
                             </button>
                             <button
-                                onClick={() => handleConfirmApprove(sub.$id)}
-                                className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition font-medium text-sm flex items-center justify-center gap-1"
+                              onClick={() => handleConfirmApprove(sub.$id)}
+                              className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg transition font-medium text-sm flex items-center justify-center gap-1"
                             >
-                                <IoCheckmark /> Confirm
+                              <IoCheckmark /> Confirm
                             </button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => updateStatus(sub.$id, "rejected")}
-                          className="bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
-                        >
-                          <IoClose /> Reject
-                        </button>
-                        <button
-                          onClick={() => handleApproveClick(sub.$id)}
-                          className="bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
-                        >
-                          <IoCheckmark /> Approve
-                        </button>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <button
-                    onClick={() => updateStatus(sub.$id, "pending")}
-                    className="col-span-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 rounded-xl transition font-medium text-sm"
-                  >
-                    Reset Status
-                  </button>
-                )}
-              </div>}
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => updateStatus(sub.$id, "rejected")}
+                            className="bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
+                          >
+                            <IoClose /> Reject
+                          </button>
+                          <button
+                            onClick={() => handleApproveClick(sub.$id)}
+                            className="bg-green-50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 py-2 rounded-xl transition font-medium flex items-center justify-center gap-2"
+                          >
+                            <IoCheckmark /> Approve
+                          </button>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => updateStatus(sub.$id, "pending")}
+                      className="col-span-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 py-2 rounded-xl transition font-medium text-sm"
+                    >
+                      Reset Status
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
