@@ -34,12 +34,16 @@ export default function UserTaskCard({ task, onClick }: UserTaskCardProps) {
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ y: -4 }}
       onClick={() => onClick(task)}
-      className={`group relative bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-sm hover:shadow-xl hover:border-[var(--primary1)]/30 transition-all duration-300 flex flex-col h-full cursor-pointer ${isClosed ? 'opacity-75 grayscale-[0.5]' : ''}`}
+      className={`group relative  dark:bg-zinc-900 rounded-2xl border p-6 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full cursor-pointer ${
+        isClosed 
+          ? 'bg-gray-100 border-red-300  dark:border-red-900/60 border-dashed hover:border-red-400 dark:hover:border-red-800' 
+          : 'bg-white border-zinc-200 dark:border-zinc-800 hover:border-[var(--primary1)]/30'
+      }`}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex flex-wrap gap-2">
             {isClosed && (
-                <span className="px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50">
                     Closed
                 </span>
             )}
@@ -60,7 +64,11 @@ export default function UserTaskCard({ task, onClick }: UserTaskCardProps) {
         </div>
       </div>
 
-       <h3 className="text-xl font-bold text-zinc-900 dark:text-white line-clamp-2 mb-2 group-hover:text-[var(--primary1)] transition-colors" title={task.title}>
+       <h3 className={`text-xl font-bold line-clamp-2 mb-2 transition-colors ${
+         isClosed 
+           ? 'text-zinc-700 dark:text-zinc-300 group-hover:text-zinc-900 dark:group-hover:text-white' 
+           : 'text-zinc-900 dark:text-white group-hover:text-[var(--primary1)]'
+       }`} title={task.title}>
         {task.title}
       </h3>
       
@@ -76,8 +84,10 @@ export default function UserTaskCard({ task, onClick }: UserTaskCardProps) {
           </div>
         ) : <span>No Deadline</span>}
 
-        <div className="flex items-center gap-1 text-[var(--primary1)] font-semibold opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-300">
-            View Details <IoArrowForward />
+        <div className={`flex items-center gap-1 font-semibold opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-[-10px] group-hover:translate-x-0 duration-300 ${
+            isClosed ? 'text-zinc-600 dark:text-zinc-400' : 'text-[var(--primary1)]'
+        }`}>
+            {isClosed ? 'View Results' : 'View Details'} <IoArrowForward />
         </div>
       </div>
     </motion.div>
