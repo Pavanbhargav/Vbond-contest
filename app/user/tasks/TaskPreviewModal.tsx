@@ -17,6 +17,7 @@ import {
 import { Query } from "appwrite";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import Image from "next/image";
 
 interface TaskPreviewModalProps {
   isOpen: boolean;
@@ -85,7 +86,9 @@ export default function TaskPreviewModal({
       "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-500",
     Hard: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500",
   };
-
+  const imageUrl = task.task_file_id
+    ? storage.getFileView(BUCKET_ID, task.task_file_id).toString()
+    : null;
   const isClosed = task.status === "closed";
 
   return (
@@ -126,6 +129,21 @@ export default function TaskPreviewModal({
                   {task.task_type}
                 </span>
               </div>
+
+              {imageUrl && (
+                <div className="w-full rounded-xl overflow-hidden mb-4 shrink-0">
+                  {/* Removed 'relative' and 'h-40' from the wrapper */}
+                  <Image
+                    src={imageUrl}
+                    alt={task.title}
+                    width={0} // Tell Next.js we will handle the sizing
+                    height={0} // Tell Next.js we will handle the sizing
+                    sizes="100vw"
+                    priority
+                    className="w-full h-auto" // <-- CSS handles the responsive aspect ratio
+                  />
+                </div>
+              )}
 
               <div className="flex items-center gap-3 mb-4">
                 {isClosed && (

@@ -66,6 +66,7 @@ export default function TasksClient() {
         task_type: doc.task_type,
         deadline: doc.deadline || undefined, // Handle possible null from Appwrite
         fileId: doc.fileId,
+        task_file_id: doc.task_file_id,
       })) as Task[];
 
       setTasks(mappedTasks);
@@ -98,6 +99,7 @@ export default function TasksClient() {
             task_type: payload.task_type,
             deadline: payload.deadline || undefined,
             fileId: payload.fileId,
+            task_file_id: payload.task_file_id,
         };
 
         setTasks((prev) => {
@@ -124,11 +126,13 @@ export default function TasksClient() {
 
   const handleSaveTask = async (
     taskData: Omit<Task, "$id" | "$createdAt" | "$updatedAt">,
-    file?: File | null
+    file?: File | null,
+    bannerFile?: File | null
   ) => {
     setIsSaving(true);
     try {
       let fileId = selectedTask?.fileId;
+      let task_file_id = selectedTask?.task_file_id;
 
       if (file) {
         // 1. Upload new file
@@ -149,6 +153,25 @@ export default function TasksClient() {
         }
       }
 
+      if (bannerFile) {
+        // 1. Upload new banner
+        const uploadedBanner = await storage.createFile(
+            BUCKET_ID,
+            ID.unique(),
+            bannerFile
+        );
+        task_file_id = uploadedBanner.$id;
+
+        // 2. Delete old banner if exists (cleanup)
+        if (selectedTask?.task_file_id) {
+            try {
+                await storage.deleteFile(BUCKET_ID, selectedTask.task_file_id);
+            } catch (e) {
+                console.warn("Failed to delete old banner file:", e);
+            }
+        }
+      }
+
       if (selectedTask) {
         // Update
         await databases.updateDocument(
@@ -158,6 +181,7 @@ export default function TasksClient() {
           {
             ...taskData,
             fileId: fileId,
+            task_file_id: task_file_id,
           }
         );
       } else {
@@ -165,6 +189,7 @@ export default function TasksClient() {
         await databases.createDocument(DB_ID, COL_TASKS, ID.unique(), {
           ...taskData,
           fileId: fileId, // Add fileId to new task
+          task_file_id: task_file_id,
           $createdAt: new Date().toISOString(),
         });
       }
