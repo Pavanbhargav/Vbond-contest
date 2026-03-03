@@ -12,6 +12,8 @@ export interface Task {
   price: number;
   deadline?: string;
   fileId?: string;
+  task_file_id?: string;
+  banner_file_id?: string;
 }
 
 interface TaskCardProps {

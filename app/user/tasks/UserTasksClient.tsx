@@ -45,6 +45,7 @@ export default function UserTasksClient() {
           task_type: doc.task_type,
           deadline: doc.deadline || undefined,
           fileId: doc.fileId,
+          task_file_id: doc.task_file_id,
         })) as Task[];
 
         setTasks(mappedTasks);
@@ -67,6 +68,7 @@ export default function UserTasksClient() {
              task_type: payload.task_type,
              deadline: payload.deadline || undefined,
              fileId: payload.fileId,
+             task_file_id: payload.task_file_id,
           };
 
           setTasks((prev) => {
@@ -200,7 +202,7 @@ export default function UserTasksClient() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
@@ -209,7 +211,7 @@ export default function UserTasksClient() {
           ))}
         </div>
       ) : filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pb-20">
           {filteredTasks.map((task) => (
             <UserTaskCard
               key={task.$id}

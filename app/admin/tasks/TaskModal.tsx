@@ -1,12 +1,15 @@
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 import { IoClose, IoSave, IoAlertCircle, IoCashOutline, IoLayersOutline, IoOptionsOutline, IoCloudUploadOutline, IoDocumentAttachOutline } from "react-icons/io5";
 import { Task } from "./TaskCard";
 
+
+
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (taskData: Omit<Task, '$id' | '$createdAt' | '$updatedAt'>, file?: File | null) => Promise<void>;
+  onSave: (taskData: Omit<Task, '$id' | '$createdAt' | '$updatedAt'>, file?: File | null, bannerFile?: File | null) => Promise<void>;
   initialData?: Task | null;
   isLoading: boolean;
 }
@@ -22,6 +25,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
     deadline: "",
   });
   const [file, setFile] = useState<File | null>(null);
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -36,6 +40,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         deadline: initialData.deadline ? new Date(initialData.deadline).toISOString().split('T')[0] : "",
       });
       setFile(null); // Reset file on edit open
+      setBannerFile(null);
     } else {
       setFormData({
         title: "",
@@ -47,6 +52,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         deadline: "",
       });
       setFile(null);
+      setBannerFile(null);
     }
     setError("");
   }, [initialData, isOpen]);
@@ -63,6 +69,18 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
     }
   };
 
+  const handleBannerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      if (!selectedFile.type.startsWith("image/")) {
+        setError("Only image files are allowed for the banner.");
+        return;
+      }
+      setBannerFile(selectedFile);
+      setError("");
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title) return setError("Title is required");
@@ -75,7 +93,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         price: Math.round(formData.price),
         level: formData.level || undefined,
         deadline: formData.deadline || undefined,
-      } as any, file);
+      } as any, file, bannerFile);
     } catch (err) {
       console.error(err);
       setError("Failed to save task. Please try again.");
@@ -189,6 +207,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
                              </p>
                         )}
                     </div>
+                    
                  </div>
 
                  {/* Right Column: Meta Data */}
@@ -196,8 +215,50 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
                     <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4">
                         <IoOptionsOutline /> Settings
                     </h3>
+                     <div>
+                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                            Banner Image
+                        </label>
+                        <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative overflow-hidden">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleBannerChange}
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                            />
+                            {bannerFile ? (
+                                <img src={URL.createObjectURL(bannerFile)} alt="Banner Preview" className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm group-hover:blur-none transition-all" />
+                            ) : null}
+                            <div className="relative z-0 flex flex-col items-center">
+                                <div className="w-12 h-12 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
+                                    {bannerFile ? <IoDocumentAttachOutline size={24} /> : <IoCloudUploadOutline size={24} />}
+                                </div>
+                                {bannerFile ? (
+                                    <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4 bg-white/80 dark:bg-zinc-900/80 rounded-md backdrop-blur-sm">
+                                        {bannerFile.name}
+                                    </p>
+                                ) : (
+                                    <>
+                                        <p className="font-medium text-zinc-900 dark:text-white">
+                                            Click or Drag Image
+                                        </p>
+                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                                            Upload banner image for the task.
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                        {initialData?.task_file_id && !bannerFile && (
+                             <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
+                                <IoDocumentAttachOutline />
+                                This task already has a banner uploaded. Uploading a new image will replace it.
+                             </p>
+                        )}
+                    </div>
                     
                     <div className="grid grid-cols-2 gap-5">
+                      
                        <div>
                             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
                                 Status <span className="text-red-500">*</span>
