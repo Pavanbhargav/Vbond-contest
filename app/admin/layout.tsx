@@ -3,6 +3,7 @@
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
 import Sidebar from "../../components/Sidebar";
+import AdminChatbot from "../../components/AdminChatbot";
 import { IoDocumentText, IoSwapHorizontal, IoMenu, IoBriefcase, IoPerson, IoPieChart } from "react-icons/io5";
 import { useState, useEffect } from "react";
 
@@ -76,6 +77,7 @@ export default function AdminLayout({
       <main className="flex-1 lg:ml-20 transition-all duration-300 ease-in-out p-4 pt-20 lg:p-8 overflow-x-hidden">
         {children}
       </main>
+      <AdminChatbot />
     </div>
   );
 }

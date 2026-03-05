@@ -46,6 +46,7 @@ export default function UserTasksClient() {
           deadline: doc.deadline || undefined,
           fileId: doc.fileId,
           task_file_id: doc.task_file_id,
+          task_code: doc.task_code,
         })) as Task[];
 
         setTasks(mappedTasks);
@@ -69,6 +70,7 @@ export default function UserTasksClient() {
              deadline: payload.deadline || undefined,
              fileId: payload.fileId,
              task_file_id: payload.task_file_id,
+             task_code: payload.task_code,
           };
 
           setTasks((prev) => {

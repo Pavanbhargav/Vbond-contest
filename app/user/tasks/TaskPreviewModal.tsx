@@ -119,7 +119,7 @@ export default function TaskPreviewModal({
 
             {/* Left Content: Description & Title */}
             <div className="flex-1 p-8 md:p-12 overflow-y-auto custom-scrollbar">
-              <div className="mb-6 flex items-center gap-3 md:hidden">
+              <div className="mb-6 flex flex-wrap items-center gap-3 md:hidden">
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${levelColors[task.level || "Easy"]}`}
                 >
@@ -128,6 +128,11 @@ export default function TaskPreviewModal({
                 <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                   {task.task_type}
                 </span>
+                {task.task_code && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700">
+                        {task.task_code}
+                    </span>
+                )}
               </div>
 
               {imageUrl && (
@@ -170,9 +175,16 @@ export default function TaskPreviewModal({
                 </div>
               )}
 
-              <h2 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white mb-6 leading-tight">
-                {task.title}
-              </h2>
+              <div className="flex items-center gap-4 mb-6">
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-white leading-tight">
+                    {task.title}
+                  </h2>
+                  {task.task_code && (
+                      <span className="hidden md:inline-block px-3 py-1 rounded-lg text-sm font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 whitespace-nowrap">
+                          {task.task_code}
+                      </span>
+                  )}
+              </div>
 
               <div className="prose dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-300">
                 <p className="whitespace-pre-wrap leading-relaxed text-lg">

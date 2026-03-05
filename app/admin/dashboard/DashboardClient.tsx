@@ -105,20 +105,20 @@ export default function DashboardClient() {
   };
 
   const toggleAdminRole = async (userDocId: string, currentStatus: boolean, name: string) => {
-    const action = currentStatus ? "remove admin rights from" : "make admin";
-    if (!confirm(`Are you sure you want to ${action} ${name}?`)) return;
+    // const action = currentStatus ? "remove admin rights from" : "make admin";
+    // if (!confirm(`Are you sure you want to ${action} ${name}?`)) return;
 
     try {
-        await databases.updateDocument(DB_ID, COL_USERS, userDocId, {
-            isAdmin: !currentStatus
-        });
+        // await databases.updateDocument(DB_ID, COL_USERS, userDocId, {
+        //     isAdmin: !currentStatus
+        // });
         
-        // Optimistic UI update
-        setUsers(prev => prev.map(u => 
-            u.$id === userDocId ? { ...u, isAdmin: !currentStatus } : u
-        ));
+        // // Optimistic UI update
+        // setUsers(prev => prev.map(u => 
+        //     u.$id === userDocId ? { ...u, isAdmin: !currentStatus } : u
+        // ));
 
-        alert(`Successfully updated role for ${name}`);
+        alert(`It is yet to develop. Please check back later!`);
     } catch (error: any) {
         console.error("Error updating role:", error);
         alert(`Failed to update user role: ${error.message}`);
@@ -255,6 +255,7 @@ export default function DashboardClient() {
                                             onClick={() => toggleAdminRole(u.$id, true, u.name)}
                                             className="text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 dark:bg-red-900/10 dark:hover:bg-red-900/30 dark:border-red-800 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ml-auto"
                                             title="Downgrade to User"
+                                            
                                           >
                                               <IoPersonRemove size={14} /> Remove Admin
                                           </button>
@@ -263,6 +264,7 @@ export default function DashboardClient() {
                                             onClick={() => toggleAdminRole(u.$id, false, u.name)}
                                             className="text-xs font-medium text-[var(--primary1)] hover:text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 dark:bg-blue-900/10 dark:hover:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 ml-auto"
                                             title="Promote to Admin"
+                                            
                                           >
                                               <IoPersonAdd size={14} /> Make Admin
                                           </button>

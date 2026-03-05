@@ -67,6 +67,7 @@ export default function TasksClient() {
         deadline: doc.deadline || undefined, // Handle possible null from Appwrite
         fileId: doc.fileId,
         task_file_id: doc.task_file_id,
+        task_code: doc.task_code,
       })) as Task[];
 
       setTasks(mappedTasks);
@@ -100,6 +101,7 @@ export default function TasksClient() {
             deadline: payload.deadline || undefined,
             fileId: payload.fileId,
             task_file_id: payload.task_file_id,
+            task_code: payload.task_code,
         };
 
         setTasks((prev) => {
@@ -182,14 +184,45 @@ export default function TasksClient() {
             ...taskData,
             fileId: fileId,
             task_file_id: task_file_id,
+            // We do not update task_code to preserve existing codes
           }
         );
       } else {
-        // Create
+        // Create - Generate new task_code
+        let newCode = "VBONDTASK1";
+        try {
+            const latestTaskRes = await databases.listDocuments(DB_ID, COL_TASKS, [
+                Query.orderDesc("$createdAt"),
+                Query.limit(1)
+            ]);
+            
+            // Loop through tasks until we find one with a valid code to increment from
+            if (latestTaskRes.documents.length > 0) {
+                 // Fetch more tasks just in case the absolute latest doesn't have a code
+                 const recentTasks = await databases.listDocuments(DB_ID, COL_TASKS, [
+                     Query.orderDesc("$createdAt"),
+                     Query.limit(10)
+                 ]);
+                 const lastTaskWithCode = recentTasks.documents.find(t => t.task_code && t.task_code.startsWith("VBONDTASK"));
+                 if (lastTaskWithCode) {
+                    const lastCode = lastTaskWithCode.task_code; // e.g., VBONDTAH4
+                    const match = lastCode.match(/VBONDTASK(\d+)/);
+                    if (match && match[1]) {
+                        const lastNum = parseInt(match[1], 10);
+                        newCode = `VBONDTASK${lastNum + 1}`;
+                    }
+                 }
+            }
+        } catch (err) {
+            console.error("Error generating task code:", err);
+            // Fallback will naturally be VBONDTAH1 if this fails
+        }
+
         await databases.createDocument(DB_ID, COL_TASKS, ID.unique(), {
           ...taskData,
           fileId: fileId, // Add fileId to new task
           task_file_id: task_file_id,
+          task_code: newCode,
           $createdAt: new Date().toISOString(),
         });
       }
@@ -464,7 +497,7 @@ export default function TasksClient() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
@@ -473,7 +506,7 @@ export default function TasksClient() {
           ))}
         </div>
       ) : filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.$id}
