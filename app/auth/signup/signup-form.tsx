@@ -17,19 +17,69 @@ export default function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const [error, setError] = useState<string>("");
-   const [showPassword,setShowPassword] = useState(false);
-  const [showConfirmPassword,setShowConfirmPassword] = useState(false);
+  const [emailError, setEmailError] = useState<string>("");
+  const [phoneError, setPhoneError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+
+  // --- Modular Validation Functions for onBlur & Submit ---
+  const validateEmail = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email.length > 0 && !emailRegex.test(email)) {
+      setEmailError("Enter a valid email address");
+      return false;
+    }
+    setEmailError("");
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = () => {
+    if (phone.length > 0 && (phone.length !== 10 || !/^\d+$/.test(phone))) {
+      setPhoneError("Phone number should be exactly 10 numbers");
+      return false;
+    }
+    setPhoneError("");
+    return phone.length === 10 && /^\d+$/.test(phone);
+  };
+
+  const validatePassword = () => {
+    if (password.length > 0 && password.length < 8) {
+      setPasswordError("Password must be at least 8 characters");
+      return false;
+    }
+    setPasswordError("");
+    return password.length >= 8;
+  };
+
+  const validateConfirmPassword = () => {
+    if (confirmPassword.length > 0 && password !== confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+    // Clear error only if it was a mismatch error
+    if (error === "Passwords do not match") setError("");
+    return password === confirmPassword && confirmPassword.length > 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
+    // Run validations on submit as a final check
+    const isEmailValid = validateEmail();
+    const isPhoneValid = validatePhone();
+    const isPasswordValid = validatePassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
+
+    if (!isEmailValid || !isPhoneValid || !isPasswordValid || !isConfirmPasswordValid) {
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      if (password !== confirmPassword) {
-        throw new Error("Passwords do not match");
-      }
       const userId = ID.unique();
       await account.create(userId, email, password, name);
 
@@ -41,9 +91,10 @@ export default function SignUpForm() {
         name: name,
         balance: 0,
       });
-      const redirect_url = `${window.location.origin}/verify`;
-      await account.createVerification(redirect_url);
-      router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
+      // const redirect_url = `${window.location.origin}/verify`;
+      // await account.createVerification(redirect_url);
+      // router.push(`/auth/check-email?email=${encodeURIComponent(email)}`);
+      router.replace("/user");
     } catch (error: any) {
       if (error.code === 409 || error.type === "user_already_exists") {
         setError(
@@ -109,9 +160,11 @@ export default function SignUpForm() {
             className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary1/50 focus:border-primary1 transition-all duration-200 dark:text-white placeholder-zinc-400"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={validateEmail} // Triggers validation on leaving the input
             required
           />
         </div>
+        {emailError && <p className="text-red-500 text-xs ml-1">{emailError}</p>}
       </div>
 
       <div className="space-y-1.5">
@@ -127,10 +180,13 @@ export default function SignUpForm() {
             placeholder="+1 (555) 000-0000"
             className="w-full pl-12 pr-4 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary1/50 focus:border-primary1 transition-all duration-200 dark:text-white placeholder-zinc-400"
             value={phone}
+            maxLength={10}
             onChange={(e) => setPhone(e.target.value)}
+            onBlur={validatePhone} // Triggers validation on leaving the input
             required
           />
         </div>
+        {phoneError && <p className="text-red-500 text-xs ml-1">{phoneError}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -148,6 +204,7 @@ export default function SignUpForm() {
               className="w-full pl-12 pr-12 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary1/50 focus:border-primary1 transition-all duration-200 dark:text-white placeholder-zinc-400"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={validatePassword} // Triggers validation on leaving the input
               required
             />
             <button
@@ -158,6 +215,7 @@ export default function SignUpForm() {
                 {showPassword ? <IoEyeOff size={20} /> : <IoEye size={20} />}
             </button>
           </div>
+          {passwordError && <p className="text-red-500 text-xs ml-1">{passwordError}</p>}
         </div>
 
         <div className="space-y-1.5">
@@ -174,6 +232,7 @@ export default function SignUpForm() {
               className="w-full pl-12 pr-12 py-3.5 bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary1/50 focus:border-primary1 transition-all duration-200 dark:text-white placeholder-zinc-400"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              onBlur={validateConfirmPassword} // Triggers validation on leaving the input
               required
             />
             <button

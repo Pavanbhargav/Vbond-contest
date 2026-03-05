@@ -297,7 +297,7 @@ export default function UserDashboardClient() {
                     onClick={() => window.location.href='/user/tasks'}
                     className="w-full bg-white text-[var(--primary2)] px-4 py-3 rounded-lg font-bold hover:bg-zinc-50 transition text-center"
                 >
-                    Browse Tasks
+                    Browse New Tasks
                 </button>
             </div>
          </div>

@@ -14,6 +14,7 @@ export interface Task {
   fileId?: string;
   task_file_id?: string;
   banner_file_id?: string;
+  task_code?: string;
 }
 
 interface TaskCardProps {
@@ -45,10 +46,15 @@ export default function TaskCard({ task, onEdit, onClosePayout }: TaskCardProps)
     >
       {/* Header Info */}
       <div className="flex justify-between items-start mb-3">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${statusColors[task.status] || statusColors.open}`}>
             {task.status}
           </span>
+          {task.task_code && (
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-700">
+                  {task.task_code}
+              </span>
+          )}
           {task.level && (
             <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${levelColors[task.level] || levelColors.Easy}`}>
               {task.level}

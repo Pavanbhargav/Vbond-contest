@@ -19,6 +19,7 @@ export interface Task {
   deadline?: string;
   fileId?: string;
   task_file_id?: string;
+  task_code?: string;
 }
 
 interface UserTaskCardProps {
@@ -71,11 +72,16 @@ export default function UserTaskCard({ task, onClick }: UserTaskCardProps) {
       )}
 
       <div className="flex justify-between items-start mb-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 items-center">
           {isClosed && (
             <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800/50">
               Closed
             </span>
+          )}
+          {task.task_code && (
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md border border-zinc-200 dark:border-zinc-700">
+                  {task.task_code}
+              </span>
           )}
           {task.level && (
             <span

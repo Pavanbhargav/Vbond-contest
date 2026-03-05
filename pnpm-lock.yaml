@@ -20,6 +20,9 @@ importers:
       next:
         specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      node-appwrite:
+        specifier: ^22.1.2
+        version: 22.1.2
       nodemailer:
         specifier: ^8.0.1
         version: 8.0.1
@@ -1618,6 +1621,12 @@ packages:
         optional: true
       sass:
         optional: true
+
+  node-appwrite@22.1.2:
+    resolution: {integrity: sha512-iK30EBV+/rkU2jbHR+i2BK+7axlxjuF/G7X290jGwOc7Wa/qkkK67icgU4M+XJgCUsInha4ZeH0dWs7Gw0RT9A==}
+
+  node-fetch-native-with-agent@1.7.2:
+    resolution: {integrity: sha512-5MaOOCuJEvcckoz7/tjdx1M6OusOY6Xc5f459IaruGStWnKzlI1qpNgaAwmn4LmFYcsSlj+jBMk84wmmRxfk5g==}
 
   node-releases@2.0.27:
     resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
@@ -3657,6 +3666,13 @@ snapshots:
     transitivePeerDependencies:
       - '@babel/core'
       - babel-plugin-macros
+
+  node-appwrite@22.1.2:
+    dependencies:
+      json-bigint: 1.0.0
+      node-fetch-native-with-agent: 1.7.2
+
+  node-fetch-native-with-agent@1.7.2: {}
 
   node-releases@2.0.27: {}
 

@@ -119,8 +119,13 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
           >
             <div className="flex items-center justify-between p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
               <div>
-                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">
+                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
                     {initialData ? "Update Task" : "Create New Task"}
+                    {initialData?.task_code && (
+                        <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-200/50 dark:bg-zinc-800 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                            {initialData.task_code}
+                        </span>
+                    )}
                  </h2>
                  <p className="text-zinc-500 dark:text-zinc-400 mt-1">Fill in the details below to manage the task.</p>
               </div>
