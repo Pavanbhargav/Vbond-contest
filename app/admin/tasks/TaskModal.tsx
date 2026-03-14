@@ -36,7 +36,7 @@ export default function TaskModal({
     description: "",
     status: "open" as Task["status"],
     level: "Easy" as Task["level"],
-    task_type: "UI" as Task["task_type"],
+    task_type: "Graphic Design" as Task['task_type'],
     price: 0,
     deadline: "",
   });
@@ -65,7 +65,7 @@ export default function TaskModal({
         description: "",
         status: "open",
         level: "Easy",
-        task_type: "UI",
+        task_type: "Graphic Design",
         price: 0,
         deadline: "",
       });
@@ -367,10 +367,7 @@ export default function TaskModal({
                           }
                           className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
                         >
-                          <option value="UI">UI</option>
                           <option value="Graphic Design">Graphic Design</option>
-                          <option value="Vector Design">Vector Design</option>
-                          <option value="Photo">Photo</option>
                           <option value="Audio Editing">Audio Editing</option>
                           <option value="Content Writing">
                             Content Writing

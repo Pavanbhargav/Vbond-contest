@@ -199,7 +199,7 @@ export default function ReviewClient() {
     const url = getFileView(fileId).toString();
     setPreviewFile({
       url,
-      type: task?.task_type === "Video" ? "video" : "image",
+      type: task?.task_type?.includes("Video") ? "video" : "image",
     });
   };
 
@@ -277,7 +277,7 @@ export default function ReviewClient() {
                 className="group relative mb-4 h-56 bg-zinc-100 dark:bg-zinc-800 rounded-xl overflow-hidden flex items-center justify-center border border-zinc-200 dark:border-zinc-700 cursor-pointer"
                 onClick={() => openPreview(sub.fileId)}
               >
-                {task?.task_type === "Video" ? (
+                {task?.task_type?.includes("Video") ? (
                   <video
                     src={getFileView(sub.fileId).toString()}
                     className="w-full h-full object-cover"
