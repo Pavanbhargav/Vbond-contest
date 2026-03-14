@@ -83,7 +83,7 @@ export default function TasksClient() {
 
     if (!authLoading && isAdmin) {
       fetchTasks();
-      
+
       // Realtime Subscription
       const channel = `databases.${DB_ID}.collections.${COL_TASKS}.documents`;
       unsubscribe = client.subscribe(channel, (response) => {
@@ -91,45 +91,45 @@ export default function TasksClient() {
         const payload = response.payload as any;
 
         const task: Task = {
-            $id: payload.$id,
-            title: payload.title,
-            description: payload.description,
-            status: payload.status,
-            level: payload.level,
-            price: payload.price,
-            task_type: payload.task_type,
-            deadline: payload.deadline || undefined,
-            fileId: payload.fileId,
-            task_file_id: payload.task_file_id,
-            task_code: payload.task_code,
+          $id: payload.$id,
+          title: payload.title,
+          description: payload.description,
+          status: payload.status,
+          level: payload.level,
+          price: payload.price,
+          task_type: payload.task_type,
+          deadline: payload.deadline || undefined,
+          fileId: payload.fileId,
+          task_file_id: payload.task_file_id,
+          task_code: payload.task_code,
         };
 
         setTasks((prev) => {
-            if (event.includes(".create")) {
-                return [task, ...prev];
-            }
-            if (event.includes(".update")) {
-                return prev.map((t) => (t.$id === task.$id ? task : t));
-            }
-            if (event.includes(".delete")) {
-                return prev.filter((t) => t.$id !== task.$id);
-            }
-            return prev;
+          if (event.includes(".create")) {
+            return [task, ...prev];
+          }
+          if (event.includes(".update")) {
+            return prev.map((t) => (t.$id === task.$id ? task : t));
+          }
+          if (event.includes(".delete")) {
+            return prev.filter((t) => t.$id !== task.$id);
+          }
+          return prev;
         });
       });
     }
 
     return () => {
-        if (unsubscribe) {
-            unsubscribe();
-        }
+      if (unsubscribe) {
+        unsubscribe();
+      }
     };
   }, [authLoading, isAdmin]);
 
   const handleSaveTask = async (
     taskData: Omit<Task, "$id" | "$createdAt" | "$updatedAt">,
     file?: File | null,
-    bannerFile?: File | null
+    bannerFile?: File | null,
   ) => {
     setIsSaving(true);
     try {
@@ -139,83 +139,82 @@ export default function TasksClient() {
       if (file) {
         // 1. Upload new file
         const uploadedFile = await storage.createFile(
-            BUCKET_ID,
-            ID.unique(),
-            file
+          BUCKET_ID,
+          ID.unique(),
+          file,
         );
         fileId = uploadedFile.$id;
 
         // 2. Delete old file if exists (cleanup)
         if (selectedTask?.fileId) {
-            try {
-                await storage.deleteFile(BUCKET_ID, selectedTask.fileId);
-            } catch (e) {
-                console.warn("Failed to delete old file:", e);
-            }
+          try {
+            await storage.deleteFile(BUCKET_ID, selectedTask.fileId);
+          } catch (e) {
+            console.warn("Failed to delete old file:", e);
+          }
         }
       }
 
       if (bannerFile) {
         // 1. Upload new banner
         const uploadedBanner = await storage.createFile(
-            BUCKET_ID,
-            ID.unique(),
-            bannerFile
+          BUCKET_ID,
+          ID.unique(),
+          bannerFile,
         );
         task_file_id = uploadedBanner.$id;
 
         // 2. Delete old banner if exists (cleanup)
         if (selectedTask?.task_file_id) {
-            try {
-                await storage.deleteFile(BUCKET_ID, selectedTask.task_file_id);
-            } catch (e) {
-                console.warn("Failed to delete old banner file:", e);
-            }
+          try {
+            await storage.deleteFile(BUCKET_ID, selectedTask.task_file_id);
+          } catch (e) {
+            console.warn("Failed to delete old banner file:", e);
+          }
         }
       }
 
       if (selectedTask) {
         // Update
-        await databases.updateDocument(
-          DB_ID,
-          COL_TASKS,
-          selectedTask.$id,
-          {
-            ...taskData,
-            fileId: fileId,
-            task_file_id: task_file_id,
-            // We do not update task_code to preserve existing codes
-          }
-        );
+        await databases.updateDocument(DB_ID, COL_TASKS, selectedTask.$id, {
+          ...taskData,
+          fileId: fileId,
+          task_file_id: task_file_id,
+          // We do not update task_code to preserve existing codes
+        });
       } else {
         // Create - Generate new task_code
         let newCode = "VBONDTASK1";
         try {
-            const latestTaskRes = await databases.listDocuments(DB_ID, COL_TASKS, [
-                Query.orderDesc("$createdAt"),
-                Query.limit(1)
-            ]);
-            
-            // Loop through tasks until we find one with a valid code to increment from
-            if (latestTaskRes.documents.length > 0) {
-                 // Fetch more tasks just in case the absolute latest doesn't have a code
-                 const recentTasks = await databases.listDocuments(DB_ID, COL_TASKS, [
-                     Query.orderDesc("$createdAt"),
-                     Query.limit(10)
-                 ]);
-                 const lastTaskWithCode = recentTasks.documents.find(t => t.task_code && t.task_code.startsWith("VBONDTASK"));
-                 if (lastTaskWithCode) {
-                    const lastCode = lastTaskWithCode.task_code; // e.g., VBONDTAH4
-                    const match = lastCode.match(/VBONDTASK(\d+)/);
-                    if (match && match[1]) {
-                        const lastNum = parseInt(match[1], 10);
-                        newCode = `VBONDTASK${lastNum + 1}`;
-                    }
-                 }
+          const latestTaskRes = await databases.listDocuments(
+            DB_ID,
+            COL_TASKS,
+            [Query.orderDesc("$createdAt"), Query.limit(1)],
+          );
+
+          // Loop through tasks until we find one with a valid code to increment from
+          if (latestTaskRes.documents.length > 0) {
+            // Fetch more tasks just in case the absolute latest doesn't have a code
+            const recentTasks = await databases.listDocuments(
+              DB_ID,
+              COL_TASKS,
+              [Query.orderDesc("$createdAt"), Query.limit(10)],
+            );
+            const lastTaskWithCode = recentTasks.documents.find(
+              (t) => t.task_code && t.task_code.startsWith("VBONDTASK"),
+            );
+            if (lastTaskWithCode) {
+              const lastCode = lastTaskWithCode.task_code; // e.g., VBONDTAH4
+              const match = lastCode.match(/VBONDTASK(\d+)/);
+              if (match && match[1]) {
+                const lastNum = parseInt(match[1], 10);
+                newCode = `VBONDTASK${lastNum + 1}`;
+              }
             }
+          }
         } catch (err) {
-            console.error("Error generating task code:", err);
-            // Fallback will naturally be VBONDTAH1 if this fails
+          console.error("Error generating task code:", err);
+          // Fallback will naturally be VBONDTAH1 if this fails
         }
 
         await databases.createDocument(DB_ID, COL_TASKS, ID.unique(), {
@@ -253,13 +252,13 @@ export default function TasksClient() {
       task.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  /* 
+  /*
    * executePayout: Handles the actual DB updates after confirmation.
    * No internal modals for confirmation, just execution and result feedback.
    */
   const executePayout = async (task: Task) => {
     setConfirmModal((prev) => ({ ...prev, isOpen: false })); // Close confirmation
-    
+
     try {
       setLoading(true);
 
@@ -271,7 +270,7 @@ export default function TasksClient() {
           Query.equal("taskId", task.$id),
           Query.equal("status", "pending"),
           Query.limit(100),
-        ]
+        ],
       );
 
       let rejectedCount = 0;
@@ -295,69 +294,73 @@ export default function TasksClient() {
 
       // Note: "No winners" check is done in handleClosePayout, but we handle it gracefully here too
       if (approved.total === 0) {
-         await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
-            status: "closed",
-            total_approvals: 0,
-          });
+        await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
+          status: "closed",
+          total_approvals: 0,
+        });
       } else {
-          let totalDistributedAmount = 0;
-          
-          // --- 3. Distribute Payouts ---
-          for (const sub of approved.documents) {
-            const amountToShare = sub.amount_shared || 0;
-            totalDistributedAmount += amountToShare;
+        let totalDistributedAmount = 0;
 
-            if (amountToShare > 0) {
-              try {
-                const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
-                  Query.equal("userId", sub.userId),
-                ]);
+        // --- 3. Distribute Payouts ---
+        for (const sub of approved.documents) {
+          const amountToShare = sub.amount_shared || 0;
+          totalDistributedAmount += amountToShare;
 
-                if (userDocs.total > 0) {
-                  const userDoc = userDocs.documents[0];
-                  await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
-                    balance: userDoc.balance + amountToShare,
-                  });
-                  await databases.createDocument(
-                    DB_ID,
-                    COL_TRANSACTIONS,
-                    ID.unique(),
-                    {
-                      userId: sub.userId,
-                      transaction_amount: amountToShare,
-                    transaction_type:'credit',
+          if (amountToShare > 0) {
+            try {
+              const userDocs = await databases.listDocuments(DB_ID, COL_USERS, [
+                Query.equal("userId", sub.userId),
+              ]);
+
+              if (userDocs.total > 0) {
+                const userDoc = userDocs.documents[0];
+                await databases.updateDocument(DB_ID, COL_USERS, userDoc.$id, {
+                  balance: userDoc.balance + amountToShare,
+                });
+                await databases.createDocument(
+                  DB_ID,
+                  COL_TRANSACTIONS,
+                  ID.unique(),
+                  {
+                    userId: sub.userId,
+                    transaction_amount: amountToShare,
+                    transaction_type: "credit",
+                    transaction_status: "Complete",
                     transaction_description: `Payout for task "${task.title}"`,
                     transaction_created: new Date().toISOString(),
-                  }
-                  );
-                }
-              } catch (innerError) {
-                console.error(`Failed to update user ${sub.userId}:`, innerError);
+                  },
+                );
               }
+            } catch (innerError) {
+              console.error(`Failed to update user ${sub.userId}:`, innerError);
             }
           }
+        }
 
-          // --- 4. Close Task ---
-          await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
-            status: "closed",
-            total_approvals: approved.total,
-          });
+        // --- 4. Close Task ---
+        await databases.updateDocument(DB_ID, COL_TASKS, task.$id, {
+          status: "closed",
+          total_approvals: approved.total,
+        });
       }
 
       // --- 5. Result Feedback ---
       let message = "";
       if (approved.total > 0) {
-          // Calculate total distributed amount again for feedback
-          const totalDistributedAmount = approved.documents.reduce((sum: number, sub: any) => sum + (sub.amount_shared || 0), 0);
-          message = `Successfully distributed a total of ₹${totalDistributedAmount} among ${approved.total} users based on their approved amounts.`;
+        // Calculate total distributed amount again for feedback
+        const totalDistributedAmount = approved.documents.reduce(
+          (sum: number, sub: any) => sum + (sub.amount_shared || 0),
+          0,
+        );
+        message = `Successfully distributed a total of ₹${totalDistributedAmount} among ${approved.total} users based on their approved amounts.`;
       } else {
-          message = "Task closed successfully. No payouts were distributed.";
+        message = "Task closed successfully. No payouts were distributed.";
       }
-      
+
       if (rejectedCount > 0) {
         message += ` Also rejected ${rejectedCount} pending submissions.`;
       }
-      
+
       setConfirmModal({
         isOpen: true,
         type: "alert",
@@ -379,75 +382,69 @@ export default function TasksClient() {
         confirmText: "OK",
         isDanger: true,
         onConfirm: () => {},
-     });
+      });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   /*
-   * handleClosePayout: 
+   * handleClosePayout:
    * 1. Fetches pending/approved counts.
    * 2. Shows a unified confirmation modal with the summary.
    */
   const handleClosePayout = async (task: Task) => {
     try {
-        setLoading(true);
-        // Pre-fetch counts to show in modal
-        const pending = await databases.listDocuments(
-            DB_ID,
-            COL_SUBMISSIONS,
-            [
-                Query.equal("taskId", task.$id),
-                Query.equal("status", "pending"),
-                Query.limit(1)
-            ]
+      setLoading(true);
+      // Pre-fetch counts to show in modal
+      const pending = await databases.listDocuments(DB_ID, COL_SUBMISSIONS, [
+        Query.equal("taskId", task.$id),
+        Query.equal("status", "pending"),
+        Query.limit(1),
+      ]);
+      const approved = await databases.listDocuments(DB_ID, COL_SUBMISSIONS, [
+        Query.equal("taskId", task.$id),
+        Query.equal("status", "approved"),
+        Query.limit(100),
+      ]);
+
+      let title = "Close Task & Payout";
+      let message = "";
+      let confirmText = "Close & Payout";
+
+      // Logic for message
+      if (approved.total === 0) {
+        title = "No Approved Submissions";
+        message = `No approved submissions found. ${pending.total} pending submissions will be rejected. The task will be closed without payout.`;
+        confirmText = "Close Task";
+      } else {
+        const totalDistributedAmount = approved.documents.reduce(
+          (sum: number, sub: any) => sum + (sub.amount_shared || 0),
+          0,
         );
-        const approved = await databases.listDocuments(
-            DB_ID,
-            COL_SUBMISSIONS,
-            [
-                Query.equal("taskId", task.$id),
-                Query.equal("status", "approved"),
-                Query.limit(100)
-            ]
-        );
+        message = `Found ${approved.total} approved submissions. Total preset payout of ₹${totalDistributedAmount} will be distributed. ${pending.total} pending submissions will be rejected.`;
+      }
 
-        let title = "Close Task & Payout";
-        let message = "";
-        let confirmText = "Close & Payout";
-        
-        // Logic for message
-        if (approved.total === 0) {
-            title = "No Approved Submissions";
-            message = `No approved submissions found. ${pending.total} pending submissions will be rejected. The task will be closed without payout.`;
-            confirmText = "Close Task";
-        } else {
-            const totalDistributedAmount = approved.documents.reduce((sum: number, sub: any) => sum + (sub.amount_shared || 0), 0);
-            message = `Found ${approved.total} approved submissions. Total preset payout of ₹${totalDistributedAmount} will be distributed. ${pending.total} pending submissions will be rejected.`;
-        }
-
-        setLoading(false);
-        setConfirmModal({
-            isOpen: true,
-            title,
-            message,
-            isDanger: true,
-            confirmText,
-            type: "confirm", 
-            onConfirm: () => executePayout(task),
-        });
-
+      setLoading(false);
+      setConfirmModal({
+        isOpen: true,
+        title,
+        message,
+        isDanger: true,
+        confirmText,
+        type: "confirm",
+        onConfirm: () => executePayout(task),
+      });
     } catch (error: any) {
-        setLoading(false);
-        setConfirmModal({
-            isOpen: true,
-            type: "alert",
-            title: "Error",
-            message: "Failed to fetch submission details: " + error.message,
-            confirmText: "OK",
-            onConfirm: () => {},
-        });
+      setLoading(false);
+      setConfirmModal({
+        isOpen: true,
+        type: "alert",
+        title: "Error",
+        message: "Failed to fetch submission details: " + error.message,
+        confirmText: "OK",
+        onConfirm: () => {},
+      });
     }
   };
 
