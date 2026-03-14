@@ -1,26 +1,42 @@
-
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { IoClose, IoSave, IoAlertCircle, IoCashOutline, IoLayersOutline, IoOptionsOutline, IoCloudUploadOutline, IoDocumentAttachOutline } from "react-icons/io5";
+import {
+  IoClose,
+  IoSave,
+  IoAlertCircle,
+  IoCashOutline,
+  IoLayersOutline,
+  IoOptionsOutline,
+  IoCloudUploadOutline,
+  IoDocumentAttachOutline,
+} from "react-icons/io5";
 import { Task } from "./TaskCard";
-
-
 
 interface TaskModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (taskData: Omit<Task, '$id' | '$createdAt' | '$updatedAt'>, file?: File | null, bannerFile?: File | null) => Promise<void>;
+  onSave: (
+    taskData: Omit<Task, "$id" | "$createdAt" | "$updatedAt">,
+    file?: File | null,
+    bannerFile?: File | null,
+  ) => Promise<void>;
   initialData?: Task | null;
   isLoading: boolean;
 }
 
-export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoading }: TaskModalProps) {
+export default function TaskModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  isLoading,
+}: TaskModalProps) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    status: "open" as Task['status'],
-    level: "Easy" as Task['level'],
-    task_type: "Video" as Task['task_type'],
+    status: "open" as Task["status"],
+    level: "Easy" as Task["level"],
+    task_type: "UI" as Task["task_type"],
     price: 0,
     deadline: "",
   });
@@ -37,7 +53,9 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         level: initialData.level || "Easy",
         task_type: initialData.task_type,
         price: initialData.price,
-        deadline: initialData.deadline ? new Date(initialData.deadline).toISOString().split('T')[0] : "",
+        deadline: initialData.deadline
+          ? new Date(initialData.deadline).toISOString().split("T")[0]
+          : "",
       });
       setFile(null); // Reset file on edit open
       setBannerFile(null);
@@ -47,7 +65,7 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
         description: "",
         status: "open",
         level: "Easy",
-        task_type: "Video",
+        task_type: "UI",
         price: 0,
         deadline: "",
       });
@@ -60,7 +78,10 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
-      if (selectedFile.type !== "application/zip" && !selectedFile.name.endsWith(".zip")) {
+      if (
+        selectedFile.type !== "application/zip" &&
+        !selectedFile.name.endsWith(".zip")
+      ) {
         setError("Only .zip files are allowed for assets.");
         return;
       }
@@ -86,14 +107,18 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
     if (!formData.title) return setError("Title is required");
     if (!formData.description) return setError("Description is required");
     if (formData.price < 0) return setError("Price cannot be negative");
-    
+
     try {
-      await onSave({
-        ...formData,
-        price: Math.round(formData.price),
-        level: formData.level || undefined,
-        deadline: formData.deadline || undefined,
-      } as any, file, bannerFile);
+      await onSave(
+        {
+          ...formData,
+          price: Math.round(formData.price),
+          level: formData.level || undefined,
+          deadline: formData.deadline || undefined,
+        } as any,
+        file,
+        bannerFile,
+      );
     } catch (err) {
       console.error(err);
       setError("Failed to save task. Please try again.");
@@ -119,15 +144,17 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
           >
             <div className="flex items-center justify-between p-8 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
               <div>
-                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
-                    {initialData ? "Update Task" : "Create New Task"}
-                    {initialData?.task_code && (
-                        <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-200/50 dark:bg-zinc-800 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                            {initialData.task_code}
-                        </span>
-                    )}
-                 </h2>
-                 <p className="text-zinc-500 dark:text-zinc-400 mt-1">Fill in the details below to manage the task.</p>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-white flex items-center gap-3">
+                  {initialData ? "Update Task" : "Create New Task"}
+                  {initialData?.task_code && (
+                    <span className="text-sm font-bold text-zinc-500 dark:text-zinc-400 bg-zinc-200/50 dark:bg-zinc-800 px-3 py-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                      {initialData.task_code}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+                  Fill in the details below to manage the task.
+                </p>
               </div>
               <button
                 onClick={onClose}
@@ -147,205 +174,263 @@ export default function TaskModal({ isOpen, onClose, onSave, initialData, isLoad
 
               {/* Main Info Section */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                 {/* Left Column: Title & Description */}
-                 <div className="space-y-6">
-                    <div>
-                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                        Task Title <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                        type="text"
-                        value={formData.title}
-                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        className="w-full px-5 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all text-lg"
-                        placeholder="e.g. Redesign Landing Page"
-                        autoFocus
-                        />
-                    </div>
+                {/* Left Column: Title & Description */}
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                      Task Title <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData({ ...formData, title: e.target.value })
+                      }
+                      className="w-full px-5 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all text-lg"
+                      placeholder="e.g. Redesign Landing Page"
+                      autoFocus
+                    />
+                  </div>
 
-                    <div>
-                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                        Description <span className="text-red-500">*</span>
-                        </label>
-                        <textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        rows={8}
-                        className="w-full px-5 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all resize-none"
-                        placeholder="Add detailed instructions, requirements, and context..."
-                        />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                      Description <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          description: e.target.value,
+                        })
+                      }
+                      rows={8}
+                      className="w-full px-5 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all resize-none"
+                      placeholder="Add detailed instructions, requirements, and context..."
+                    />
+                  </div>
 
-                     <div>
-                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                            Assets (ZIP only)
-                        </label>
-                        <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative">
-                            <input
-                                type="file"
-                                accept=".zip,application/zip"
-                                onChange={handleFileChange}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
-                                {file ? <IoDocumentAttachOutline size={24} /> : <IoCloudUploadOutline size={24} />}
-                            </div>
-                            {file ? (
-                                <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4">
-                                    {file.name}
-                                </p>
-                            ) : (
-                                <>
-                                    <p className="font-medium text-zinc-900 dark:text-white">
-                                        Click or Drag ZIP file
-                                    </p>
-                                    <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                        Upload assets for the user (Max 50MB)
-                                    </p>
-                                </>
-                            )}
-                        </div>
-                        {initialData?.fileId && !file && (
-                             <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
-                                <IoDocumentAttachOutline />
-                                This task already has assets uploaded. Uploading a new file will replace them.
-                             </p>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                      Assets (ZIP only)
+                    </label>
+                    <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative">
+                      <input
+                        type="file"
+                        accept=".zip,application/zip"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <div className="w-12 h-12 bg-zinc-100 dark:bg-zinc-800 rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
+                        {file ? (
+                          <IoDocumentAttachOutline size={24} />
+                        ) : (
+                          <IoCloudUploadOutline size={24} />
                         )}
+                      </div>
+                      {file ? (
+                        <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4">
+                          {file.name}
+                        </p>
+                      ) : (
+                        <>
+                          <p className="font-medium text-zinc-900 dark:text-white">
+                            Click or Drag ZIP file
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            Upload assets for the user (Max 50MB)
+                          </p>
+                        </>
+                      )}
                     </div>
-                    
-                 </div>
+                    {initialData?.fileId && !file && (
+                      <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
+                        <IoDocumentAttachOutline />
+                        This task already has assets uploaded. Uploading a new
+                        file will replace them.
+                      </p>
+                    )}
+                  </div>
+                </div>
 
-                 {/* Right Column: Meta Data */}
-                 <div className="space-y-6 bg-zinc-50 dark:bg-zinc-800/30 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
-                    <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4">
-                        <IoOptionsOutline /> Settings
-                    </h3>
-                     <div>
-                        <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
-                            Banner Image
-                        </label>
-                        <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative overflow-hidden">
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={handleBannerChange}
-                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                            />
-                            {bannerFile ? (
-                                <img src={URL.createObjectURL(bannerFile)} alt="Banner Preview" className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm group-hover:blur-none transition-all" />
-                            ) : null}
-                            <div className="relative z-0 flex flex-col items-center">
-                                <div className="w-12 h-12 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
-                                    {bannerFile ? <IoDocumentAttachOutline size={24} /> : <IoCloudUploadOutline size={24} />}
-                                </div>
-                                {bannerFile ? (
-                                    <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4 bg-white/80 dark:bg-zinc-900/80 rounded-md backdrop-blur-sm">
-                                        {bannerFile.name}
-                                    </p>
-                                ) : (
-                                    <>
-                                        <p className="font-medium text-zinc-900 dark:text-white">
-                                            Click or Drag Image
-                                        </p>
-                                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                                            Upload banner image for the task.
-                                        </p>
-                                    </>
-                                )}
-                            </div>
+                {/* Right Column: Meta Data */}
+                <div className="space-y-6 bg-zinc-50 dark:bg-zinc-800/30 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <h3 className="text-lg font-bold text-zinc-900 dark:text-white flex items-center gap-2 mb-4">
+                    <IoOptionsOutline /> Settings
+                  </h3>
+                  <div>
+                    <label className="block text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+                      Banner Image
+                    </label>
+                    <div className="border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:border-[var(--primary1)] hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-all group cursor-pointer relative overflow-hidden">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      {bannerFile ? (
+                        <img
+                          src={URL.createObjectURL(bannerFile)}
+                          alt="Banner Preview"
+                          className="absolute inset-0 w-full h-full object-cover opacity-50 blur-sm group-hover:blur-none transition-all"
+                        />
+                      ) : null}
+                      <div className="relative z-0 flex flex-col items-center">
+                        <div className="w-12 h-12 bg-zinc-100/80 dark:bg-zinc-800/80 backdrop-blur-sm rounded-full flex items-center justify-center text-zinc-400 group-hover:text-[var(--primary1)] mb-3 transition-colors">
+                          {bannerFile ? (
+                            <IoDocumentAttachOutline size={24} />
+                          ) : (
+                            <IoCloudUploadOutline size={24} />
+                          )}
                         </div>
-                        {initialData?.task_file_id && !bannerFile && (
-                             <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
-                                <IoDocumentAttachOutline />
-                                This task already has a banner uploaded. Uploading a new image will replace it.
-                             </p>
+                        {bannerFile ? (
+                          <p className="font-medium text-zinc-900 dark:text-white truncate max-w-full px-4 bg-white/80 dark:bg-zinc-900/80 rounded-md backdrop-blur-sm">
+                            {bannerFile.name}
+                          </p>
+                        ) : (
+                          <>
+                            <p className="font-medium text-zinc-900 dark:text-white">
+                              Click or Drag Image
+                            </p>
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                              Upload banner image for the task.
+                            </p>
+                          </>
                         )}
+                      </div>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-5">
-                      
-                       <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                                Status <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={formData.status}
-                                onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-                                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
-                            >
-                                <option value="open">Open</option>
-                                <option value="closed">Closed</option>
-                            </select>
-                        </div>
+                    {initialData?.task_file_id && !bannerFile && (
+                      <p className="text-xs text-[var(--primary1)] mt-2 flex items-center gap-1">
+                        <IoDocumentAttachOutline />
+                        This task already has a banner uploaded. Uploading a new
+                        image will replace it.
+                      </p>
+                    )}
+                  </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                                Task Level
-                            </label>
-                            <select
-                                value={formData.level}
-                                onChange={(e) => setFormData({ ...formData, level: e.target.value as any })}
-                                className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
-                            >
-                                <option value="Easy">Easy</option>
-                                <option value="Medium">Medium</option>
-                                <option value="Hard">Hard</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-5">
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                                Task Type <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <IoLayersOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                <select
-                                    value={formData.task_type}
-                                    onChange={(e) => setFormData({ ...formData, task_type: e.target.value as any })}
-                                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
-                                >
-                                    <option value="Photo">Photo</option>
-                                    <option value="UI">UI</option>
-                                    <option value="Video">Video</option>
-                                    <option value="GraphicDesign">Graphic Design</option>
-                                    <option value="VectorDesign">Vector Design</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                                Price (₹) <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <IoCashOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
-                                <input
-                                    type="number"
-                                    min="1"
-                                    step="1" 
-                                    value={formData.price}
-                                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 1})}
-                                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all"
-                                    placeholder="1"
-                                />
-                            </div>
-                        </div>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        Status <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.status}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            status: e.target.value as any,
+                          })
+                        }
+                        className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="open">Open</option>
+                        <option value="closed">Closed</option>
+                      </select>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-                            Deadline
-                        </label>
-                        <input
-                            type="date"
-                            value={formData.deadline}
-                            onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                            className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all"
-                        />
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        Task Level
+                      </label>
+                      <select
+                        value={formData.level}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            level: e.target.value as any,
+                          })
+                        }
+                        className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
+                      >
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                      </select>
                     </div>
-                 </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        Task Type <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <IoLayersOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                        <select
+                          value={formData.task_type}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              task_type: e.target.value as any,
+                            })
+                          }
+                          className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="UI">UI</option>
+                          <option value="Graphic Design">Graphic Design</option>
+                          <option value="Vector Design">Vector Design</option>
+                          <option value="Photo">Photo</option>
+                          <option value="Audio Editing">Audio Editing</option>
+                          <option value="Content Writing">
+                            Content Writing
+                          </option>
+                          <option value="Website Design/ Development">
+                            Website Design/ Development
+                          </option>
+                          <option value="Digital Marketing">
+                            Digital Marketing
+                          </option>
+                          <option value="Video Editing">Video Editing</option>
+                          <option value="Video Shoot">Video Shoot</option>
+                          <option value="AI Content Creation">
+                            AI Content Creation
+                          </option>
+                          <option value="Research /Data Collection">
+                            Research /Data Collection
+                          </option>
+                          <option value="3D / VR Design">3D / VR Design</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                        Price (₹) <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <IoCashOutline className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                        <input
+                          type="number"
+                          value={formData.price}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setFormData({
+                              ...formData,
+                              price: value === "" ? ("" as any) : Number(value),
+                            });
+                          }}
+                          className="w-full pl-11 pr-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all"
+                          placeholder="0000"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+                      Deadline
+                    </label>
+                    <input
+                      type="date"
+                      value={formData.deadline}
+                      onChange={(e) =>
+                        setFormData({ ...formData, deadline: e.target.value })
+                      }
+                      className="w-full px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-6 flex items-center justify-end gap-4 border-t border-zinc-100 dark:border-zinc-800">
