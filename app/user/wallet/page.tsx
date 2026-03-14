@@ -119,8 +119,8 @@ export default function Wallet() {
 
     const amount = Number(withdrawAmount);
 
-    if (!amount || amount <= 0) {
-      setError("Please enter a valid amount.");
+    if (!amount || amount < 100) {
+      setError("Please enter a valid amount greater than or equal to ₹100.");
       return;
     }
 
@@ -239,7 +239,7 @@ export default function Wallet() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-3 bg-gradient-to-br from-[var(--primary1)] via-[var(--primary2)] to-orange-600 text-white p-8 md:p-10 rounded-3xl shadow-2xl shadow-[var(--primary1)]/20 relative overflow-hidden flex flex-col justify-between min-h-[260px] border border-white/10 backdrop-blur-sm">
+        <div className="lg:col-span-3 bg-primary1/85 to-orange-600 text-white p-8 md:p-10 rounded-3xl shadow-2xl shadow-[var(--primary1)]/20 relative overflow-hidden flex flex-col justify-between min-h-[260px] border border-white/10 backdrop-blur-sm">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl -ml-10 -mb-10 pointer-events-none"></div>
 
@@ -415,11 +415,11 @@ export default function Wallet() {
               Withdraw Funds
             </h2>
 
-            <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-xl mb-6 border border-orange-100 dark:border-orange-500/20">
-              <p className="text-sm text-orange-600 dark:text-orange-400 font-medium mb-1">
+            <div className={` p-4 rounded-xl mb-6 border dark:border-orange-500/20 ${balance <=0 ? 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-500/20' : 'bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-500/20'}`}>
+              <p className={`text-sm  font-medium mb-1 ${balance <= 0 ? "text-red-500" : "text-green-800 dark:text-green-400"}`}>
                 Available Balance
               </p>
-              <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
+              <p className={`text-3xl font-bold  ${balance <= 0 ? "text-red-500" : "text-green-600 dark:text-green-400"}`}>
                 ₹{balance.toFixed(2)}
               </p>
             </div>
