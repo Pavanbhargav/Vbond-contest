@@ -151,10 +151,7 @@ export default function UserTasksClient() {
 
   const taskTypes = [
     "All",
-    "UI",
     "Graphic Design",
-    "Vector Design",
-    "Photo",
     "Audio Editing",
     "Content Writing",
     "Website Design/ Development",

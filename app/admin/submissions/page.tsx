@@ -176,9 +176,16 @@ export default function AdminSubmissionsPage() {
 
   const getTypeColor = (type: string) => {
      switch (type) {
-        case 'Video': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-        case 'Photo': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-        case 'UI': return 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400';
+        case 'Graphic Design': return 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400';
+        case 'Audio Editing': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+        case 'Content Writing': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+        case 'Website Design/ Development': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+        case 'Digital Marketing': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+        case 'Video Editing': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+        case 'Video Shoot': return 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400';
+        case 'AI Content Creation': return 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400';
+        case 'Research /Data Collection': return 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400';
+        case '3D / VR Design': return 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400';
         default: return 'bg-gray-100 text-gray-700 dark:bg-zinc-800 dark:text-zinc-400';
      }
   }
@@ -229,11 +236,16 @@ export default function AdminSubmissionsPage() {
                 className="bg-zinc-50 dark:bg-zinc-800 border-none rounded-xl py-2 pl-3 pr-8 focus:ring-2 focus:ring-[var(--primary1)] text-zinc-900 dark:text-white"
             >
                 <option value="All">All Types</option>
-                <option value="Video">Video</option>
-                <option value="Photo">Photo</option>
-                <option value="UI">UI Design</option>
-                <option value="GraphicDesign">Graphic Design</option>
-                <option value="VectorDesign">Vector Design</option>
+                <option value="Graphic Design">Graphic Design</option>
+                <option value="Audio Editing">Audio Editing</option>
+                <option value="Content Writing">Content Writing</option>
+                <option value="Website Design/ Development">Website Design/ Development</option>
+                <option value="Digital Marketing">Digital Marketing</option>
+                <option value="Video Editing">Video Editing</option>
+                <option value="Video Shoot">Video Shoot</option>
+                <option value="AI Content Creation">AI Content Creation</option>
+                <option value="Research /Data Collection">Research /Data Collection</option>
+                <option value="3D / VR Design">3D / VR Design</option>
             </select>
         </div>
       </div>

@@ -85,6 +85,9 @@ export default function AdminChatbot() {
             (response) => {
                 const updatedRoom = response.payload as unknown as RoomDocument;
                 setRooms(prevRooms => {
+                    if (updatedRoom.status === "closed"){
+                        return prevRooms.filter(r=>r.$id !== updatedRoom.$id);
+                    }
                     const exists = prevRooms.find(r => r.$id === updatedRoom.$id);
                     if (exists) {
                         return prevRooms.map(r => r.$id === updatedRoom.$id ? { ...updatedRoom, userDetails: r.userDetails } : r);
@@ -100,7 +103,8 @@ export default function AdminChatbot() {
         );
 
         return () => unsubscribe();
-    }, [isAdmin, user]);
+    }, [isAdmin, user,]);
+    
 
     // Subscribe to messages if in an active room
     useEffect(() => {
