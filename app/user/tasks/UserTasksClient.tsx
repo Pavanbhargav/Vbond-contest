@@ -151,11 +151,19 @@ export default function UserTasksClient() {
 
   const taskTypes = [
     "All",
-    "Video",
-    "Photo",
     "UI",
-    "GraphicDesign",
-    "VectorDesign",
+    "Graphic Design",
+    "Vector Design",
+    "Photo",
+    "Audio Editing",
+    "Content Writing",
+    "Website Design/ Development",
+    "Digital Marketing",
+    "Video Editing",
+    "Video Shoot",
+    "AI Content Creation",
+    "Research /Data Collection",
+    "3D / VR Design",
   ];
 
   return (
@@ -171,7 +179,7 @@ export default function UserTasksClient() {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-20 z-10 bg-[var(--background)]/95 backdrop-blur-sm py-2">
+      <div className="flex flex-col md:flex-row gap-4 mb-8 sticky top-20 z-10 bg-gray-100  dark:bg-zinc-800 backdrop-blur-sm py-2 px-2 rounded-2xl border border-gray-200 dark:border-zinc-700">
         <div className="relative flex-grow">
           <IoSearch
             className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400"
@@ -186,20 +194,25 @@ export default function UserTasksClient() {
           />
         </div>
 
-        <div className="flex overflow-x-auto pb-2 md:pb-0 gap-2 hide-scrollbar">
-          {taskTypes.map((type) => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className={`px-4 py-3 rounded-xl whitespace-nowrap font-medium transition-all ${
-                selectedType === type
-                  ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-lg"
-                  : "bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800"
-              }`}
-            >
-              {type}
-            </button>
-          ))}
+        <div className="relative md:w-64 shrink-0 ">
+          <IoFilter
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none"
+            size={20}
+          />
+          <select
+            value={selectedType}
+            onChange={(e) => setSelectedType(e.target.value)}
+            className="w-full pl-11 pr-10 py-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white focus:ring-2 focus:ring-[var(--primary1)] focus:border-transparent outline-none transition-all appearance-none shadow-sm cursor-pointer hover:border-[var(--primary1)]/50"
+          >
+            {taskTypes.map((type) => (
+              <option key={type} value={type}>
+                {type === "All" ? "All Categories" : type}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-400">
+             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+          </div>
         </div>
       </div>
 

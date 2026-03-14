@@ -14,7 +14,7 @@ export interface Task {
   description: string;
   status: "open" | "closed";
   level?: "Easy" | "Medium" | "Hard";
-  task_type: "Video" | "Photo" | "UI" | "GraphicDesign" | "VectorDesign";
+  task_type: string;
   price: number;
   deadline?: string;
   fileId?: string;
